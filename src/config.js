@@ -58,7 +58,8 @@ export const SELL_WORDS = ['hub:', 'hubungi', 'wa.me', 'harga', 'promo', 'ready'
   'pemesanan', 'best price', 'termurah', 'terpercaya', 'amanah', 'start ', 'mulai dari', 'per pax', '/pax', 'issued',
   'dibuka', 'slot', 'stok', 'stock', 'fast respon', 'fast response', 'bagi yang butuh', 'bagi yg butuh',
   'bagi yang membutuhkan', 'bagi yg membutuhkan', 'yang membutuhkan', 'yg membutuhkan', 'silahkan japri', 'silakan japri',
-  'monggo', 'langsung japri', 'cocok buat', 'cocok untuk', 'bisa langsung'];
+  'monggo', 'langsung japri', 'cocok buat', 'cocok untuk', 'bisa langsung', 'pnr', 'ahlan yg butuh', 'ahlan yang butuh',
+  'merapat', 'available seat', 'seat available'];
 
 // Ajakan / obrolan yang sering ketangkep sebagai pertanyaan
 export const CHAT_WORDS = ['ayo merapat', 'yuk merapat', 'ayo ikut', 'yuk ikut', 'yang mau ikut kajian', 'barakallahu fiik',
