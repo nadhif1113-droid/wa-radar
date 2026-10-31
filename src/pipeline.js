@@ -4,7 +4,7 @@ import { bump, bumpCat } from './db.js';
 
 export function ensureGroup(db, jid, name, ts = Date.now()) {
   db.prepare(`INSERT INTO groups(jid,name,mode,added) VALUES(?,?,'digest',?)
-              ON CONFLICT(jid) DO UPDATE SET name=COALESCE(excluded.name, groups.name)`).run(jid, name, ts);
+              ON CONFLICT(jid) DO UPDATE SET name=COALESCE(excluded.name, groups.name)`).run(jid, name ?? null, ts);
   return db.prepare('SELECT * FROM groups WHERE jid=?').get(jid);
 }
 

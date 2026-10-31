@@ -45,13 +45,15 @@ export async function refinePending(db, log = console) {
   catch (e) { log.warn?.(`AI gagal, pakai hasil aturan: ${e.message}`); }
   const upd = db.prepare('UPDATE items SET kind=?, category=?, summary=?, urgent=?, ai_done=1 WHERE id=?');
   const keep = db.prepare('UPDATE items SET ai_done=1 WHERE id=?');
-  db.transaction(() => {
+  db.exec('BEGIN');
+  try {
     for (const p of pending) {
       const r = results.get(p.id);
       if (r && validKind.has(r.kind)) {
         upd.run(r.kind, validCat.has(r.category) ? r.category : 'lain', r.summary || null, r.urgent ? 1 : 0, p.id);
       } else keep.run(p.id);
     }
-  })();
+    db.exec('COMMIT');
+  } catch (e) { db.exec('ROLLBACK'); throw e; }
   return pending.map(p => p.id);
 }

@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';   // database bawaan Node.js (tanpa compile)
 import fs from 'node:fs';
 import path from 'node:path';
 import { env } from './config.js';
@@ -14,8 +14,8 @@ export function hourKey(ts) {
 
 export function openDb(file = env.DB_PATH) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
-  const db = new Database(file);
-  db.pragma('journal_mode = WAL');
+  const db = new DatabaseSync(file);
+  db.exec('PRAGMA journal_mode = WAL');
   db.exec(`
     CREATE TABLE IF NOT EXISTS groups (jid TEXT PRIMARY KEY, name TEXT, mode TEXT DEFAULT 'digest', added INTEGER);
     CREATE TABLE IF NOT EXISTS seen (hash TEXT PRIMARY KEY, count INTEGER, first_ts INTEGER, last_ts INTEGER);

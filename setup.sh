@@ -10,11 +10,11 @@ say() { echo -e "\n\033[1;32m▶ $1\033[0m"; }
 
 say "1/5 Pasang Node.js, git, pm2 (1-3 menit)…"
 export DEBIAN_FRONTEND=noninteractive
-if ! command -v node >/dev/null || [ "$(node -v | cut -c2- | cut -d. -f1)" -lt 20 ]; then
+if ! command -v node >/dev/null || ! node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a>22||(a===22&&b>=13)?0:1)"; then
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
   apt-get install -y nodejs >/dev/null
 fi
-apt-get install -y git build-essential python3 >/dev/null
+apt-get install -y git >/dev/null
 command -v pm2 >/dev/null || npm install -g pm2 >/dev/null 2>&1
 echo "Node $(node -v) siap."
 
@@ -42,14 +42,14 @@ if [ ! -f auth/creds.json ]; then
   echo "Sebentar lagi muncul KODE PAIRING 8 huruf."
   echo "Di HP nomor kedua: WhatsApp → Perangkat tertaut → Tautkan perangkat →"
   echo "'Tautkan dengan nomor telepon saja' → masukkan kodenya. Lalu tunggu, script lanjut sendiri."
-  node src/bot.js --pair
+  node --disable-warning=ExperimentalWarning src/bot.js --pair
 else
   say "4/5 WhatsApp sudah tersambung, dilewati"
 fi
 
 say "5/5 Jalankan bot 24 jam…"
 pm2 delete radar >/dev/null 2>&1 || true
-pm2 start src/bot.js --name radar >/dev/null
+pm2 start src/bot.js --name radar --node-args="--disable-warning=ExperimentalWarning" >/dev/null
 pm2 save >/dev/null
 pm2 startup systemd -u "$USER" --hp "$HOME" >/dev/null 2>&1 || true
 pm2 save >/dev/null
