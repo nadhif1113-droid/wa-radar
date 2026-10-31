@@ -51,6 +51,7 @@ export function prune(db, now = Date.now()) {
   const cutKey = hourKey(cutoff);
   db.prepare('DELETE FROM items WHERE ts < ?').run(cutoff);
   try { db.prepare('DELETE FROM convo WHERE ts < ?').run(cutoff); } catch {}
+  try { db.prepare('DELETE FROM prices WHERE ts < ?').run(now - 120 * 864e5); } catch {}
   db.prepare('DELETE FROM seen WHERE last_ts < ?').run(now - 14 * 864e5);
   db.prepare('DELETE FROM stats WHERE bucket < ?').run(cutKey);
   db.prepare('DELETE FROM catstats WHERE bucket < ?').run(hourKey(now - 90 * 864e5));

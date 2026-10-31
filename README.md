@@ -69,9 +69,16 @@ Cek log: `pm2 logs radar` · Restart: `pm2 restart radar`
 | `mode 3 ignore` | Group no. 3 dicuekin (cocok buat Ben Thalib, Info Dar Makkah, UMROH INFO, GUIDE UMROH, UMROH SOCIETY) |
 | `mode 5 alert` | Group no. 5: tiap pertanyaan langsung dikirim (cocok buat GET JOBS) |
 | `cari tasreh` | Cari pesan penting yang ada kata "tasreh" |
+| `harga` / `harga visa` | Harga pasar 7 hari / detail + penjual termurah |
 | `status` | Cek bot hidup |
 
 ---
+
+## 💹 Pantau harga pasar (otomatis)
+Setiap iklan yang masuk ke group mana pun (termasuk group yang di-`ignore`) ditarik harganya: visa, hotel per tipe kamar, paket, tiket, handling, tasreh, siskopatuh, vaksin, BRN, kurs tamis, bus, nasi box, jastip, dll. Iklan yang di-copy-paste dihitung sebagai pengulangan, bukan penawaran baru.
+- `harga`: median dan rentang wajar 7 hari terakhir, plus ▲▼ dibanding minggu lalu. Dikirim otomatis **tiap Sabtu 08:00**.
+- `harga visa` / `harga hotel` / `harga handling` / `harga tasreh` / `harga kurs` / `harga paket` …: 5 penjual termurah lengkap dengan kontak, kutipan iklan, group, dan tanggal. Untuk hotel ada juga tabel quad per hotel.
+Semua angka itu harga iklan, bukan harga deal. Data disimpan 120 hari.
 
 ## 💬 Auto-reply chat customer (nomor bisnis)
 Kalau ada orang yang ngechat **duluan** ke nomor bot (misalnya dari iklan Meta), bot bakal:

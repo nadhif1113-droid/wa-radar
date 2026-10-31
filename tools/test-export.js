@@ -6,6 +6,7 @@ import { processMessage } from '../src/pipeline.js';
 import { refinePending, aiEnabled } from '../src/ai.js';
 import { buildDigest, buildTrend, buildGroups, buildAlert } from '../src/report.js';
 import { CATEGORIES } from '../src/config.js';
+import { initPriceDb, buildPriceReport, buildPriceDetail } from '../src/pricereport.js';
 
 const HDR = /^‎?\[(\d\d)\/(\d\d)\/(\d{4}), (\d{1,2}):(\d\d):(\d\d)[\s ]*(AM|PM)?\] ([^:\n]+): /gm;
 
@@ -28,6 +29,7 @@ function parse(file, groupName, groupJid) {
 
 const args = process.argv.slice(2);
 const db = openDb(':memory:');
+initPriceDb(db);
 let all = [];
 args.forEach((a, i) => { const [name, file] = a.split('='); all.push(...parse(file, name, `g${i}@g.us`)); });
 all.sort((a, b) => a.ts - b.ts);
@@ -53,3 +55,12 @@ console.log('\n================ TREND ================');
 console.log(buildTrend(db, end));
 console.log('\n================ GRUP ================');
 console.log(buildGroups(db, end));
+
+if (process.env.SHOW_PRICES) {
+  console.log('\n================ HARGA ================');
+  console.log(buildPriceReport(db, end));
+  for (const q of (process.env.SHOW_PRICES || '').split(',').filter(x => x !== '1')) {
+    console.log('\n================ HARGA ' + q + ' ================');
+    console.log(buildPriceDetail(db, q, end));
+  }
+}

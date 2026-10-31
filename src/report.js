@@ -150,13 +150,15 @@ export const MENU = `🤖 *RADAR GROUP — MENU*
 *grup* — daftar group + skor sampah
 *mode 2 alert* — ubah mode group no. 2 (alert/digest/ignore)
 *cari kata* — cari pesan penting, contoh: *cari tasreh*
+*harga* — harga pasar 7 hari (visa, hotel, handling, tasreh, kurs, dll)
+*harga visa* — detail + 5 penjual termurah & kontaknya
 *chat* — daftar customer yang chat ke nomor ini (per bisnis)
 *autoreply off* / *autoreply on* — matikan/nyalakan balasan otomatis
 *rapikan* — semua group di-mute, diarsipkan, ditandai dibaca (otomatis juga utk group baru)
 *bersihkan* — hapus isi chat semua group (hemat storage), diulang tiap Jumat
 *status* — cek bot hidup
 
-Digest otomatis jam ${env.DIGEST_TIMES.join(' & ')}.`;
+Digest otomatis jam ${env.DIGEST_TIMES.join(' & ')}. Laporan harga tiap Sabtu 08:00.`;
 
 export function buildLeads(db, now = Date.now()) {
   const items = db.prepare(`SELECT * FROM items WHERE kind='tanya' AND ts>=? ORDER BY ts DESC`).all(now - 864e5)

@@ -16,12 +16,14 @@ import { refinePending, aiEnabled } from './ai.js';
 import { buildAlert, buildDigest, buildTrend, buildGroups, buildLeads, buildSearch, listGroups, MENU } from './report.js';
 import { CATEGORIES } from './config.js';
 import { respond, replyAvailable, initResponderDb } from './responder.js';
+import { initPriceDb, buildPriceReport, buildPriceDetail } from './pricereport.js';
 
 const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace('T', ' '), ...a);
 if (!env.OWNER_NUMBER) { console.error('❌ Isi OWNER_NUMBER di file .env dulu (nomor WA utama lu, contoh 9665xxxxxxx)'); process.exit(1); }
 
 const db = openDb();
 initResponderDb(db);
+initPriceDb(db);
 for (const col of ['last_key TEXT', 'last_ts INTEGER', 'tidied INTEGER DEFAULT 0', 'cleared_at INTEGER DEFAULT 0']) {
   try { db.exec(`ALTER TABLE groups ADD COLUMN ${col}`); } catch {}
 }
@@ -37,7 +39,7 @@ const PAIR_ONLY = process.argv.includes('--pair');
 // Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
 const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
 const handled = new Set();
-const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
 function isSelfChat(jid, alt) {
   const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
   return [jid, alt].some(j => j && mine.includes(digits(j)));
@@ -97,6 +99,7 @@ async function handleCommand(jid, raw) {
                       : '⏸️ Auto-reply chat customer DIMATIKAN. Chat masuk tetap gw teruskan ke lu.');
   }
   if (c === 'chat') return toOwner(buildChats());
+  if (c === 'harga') return toOwner(rest.length ? buildPriceDetail(db, rest.join(' ')) : buildPriceReport(db));
   if (c === 'rapikan') {
     if ((rest[0] || '').toLowerCase() === 'off') { meta.set(db, 'autotidy', 'off'); return toOwner('⏸️ Rapikan otomatis dimatikan.'); }
     meta.set(db, 'autotidy', 'on');
@@ -453,6 +456,7 @@ for (const t of env.DIGEST_TIMES) {
   cron.schedule(`${m} ${h} * * *`, () => sendDigest(), { timezone: env.TIMEZONE });
 }
 cron.schedule('30 3 * * *', () => { prune(db); log('Database dibersihkan'); }, { timezone: env.TIMEZONE });
+cron.schedule('0 8 * * 6', () => { toOwner(buildPriceReport(db)); log('Laporan harga mingguan terkirim'); }, { timezone: env.TIMEZONE });
 cron.schedule('0 4 * * 5', () => { if (meta.get(db, 'autoclear') === 'on') log(`Bersihkan mingguan: ${clearAllGroups()} group`); }, { timezone: env.TIMEZONE });
 
 log(`Radar Group start · AI ${aiEnabled ? 'NYALA (' + env.CLAUDE_MODEL + ')' : 'MATI'} · digest ${env.DIGEST_TIMES.join(', ')} · ` +
