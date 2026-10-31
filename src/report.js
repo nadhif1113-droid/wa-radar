@@ -23,10 +23,24 @@ function line(it, i) {
          `    👤 ${who(it)} · ${it.group_name} ${timeFmt.format(it.ts)}`;
 }
 
+// Draf sapaan yang langsung kebuka di WA lu (lu tetap yang kirim, dari nomor utama)
+function chatLink(it) {
+  if (!it.sender_num) return null;
+  const what = oneLine(it.summary || it.text, 90).replace(/[*_~]/g, '');
+  const name = it.sender_name && it.sender_name !== 'Anon' ? ` ${it.sender_name.split(/\s+/)[0]}` : '';
+  const msg = `Assalamualaikum${name}, saya lihat di group ${it.group_name} lagi cari: "${what}". ` +
+              `Insya Allah saya bisa bantu, boleh info detailnya?`;
+  return `https://wa.me/${it.sender_num}?text=${encodeURIComponent(msg)}`;
+}
+
 export function buildAlert(it) {
+  const link = chatLink(it);
   return `🔔 *LEAD — ${label(it.category)}*${it.urgent ? ' ⚡ URGENT' : ''}\n\n` +
          `"${oneLine(it.text, 500)}"\n\n` +
-         `👤 ${who(it)}\n👥 ${it.group_name} · ${timeFmt.format(it.ts)}`;
+         `👤 ${it.sender_name || 'Anon'}${it.sender_num ? ` · +${it.sender_num}` : ''}\n` +
+         `👥 ${it.group_name} · ${timeFmt.format(it.ts)}\n\n` +
+         (link ? `💬 Chat sekarang (draf sapaan siap, tinggal kirim):\n${link}`
+               : `📵 Nomornya disembunyikan WA, balas lewat group atau cek profilnya di group.`);
 }
 
 function sumStats(db, sinceTs, untilTs = Date.now()) {

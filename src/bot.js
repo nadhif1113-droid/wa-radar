@@ -207,8 +207,13 @@ async function start() {
 
       if (isJidGroup(jid)) {
         if (msg.key.fromMe) continue;
-        const p = msg.key.participantAlt || msg.key.participant || '';
-        const senderNum = p.endsWith('@s.whatsapp.net') ? digits(p) : '';
+        // Cari nomor asli pengirim (WA sering menyamarkan jadi "LID")
+        const parts = [msg.key.participant, msg.key.participantAlt].filter(Boolean);
+        let senderNum = digits(parts.find(j => j.endsWith('@s.whatsapp.net')));
+        const lid = parts.find(j => j.endsWith('@lid'));
+        if (!senderNum && lid) {
+          try { senderNum = digits(await sock.signalRepository?.lidMapping?.getPNForLID(lid)); } catch {}
+        }
         let groupName = db.prepare('SELECT name FROM groups WHERE jid=?').get(jid)?.name;
         if (!groupName) { try { groupName = (await sock.groupMetadata(jid)).subject; } catch { groupName = jid; } }
         processMessage(db, {
