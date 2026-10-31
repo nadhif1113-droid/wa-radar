@@ -28,6 +28,22 @@ let pairingRequested = false;
 let retries = 0;
 let PAIR_DONE = false;
 const PAIR_ONLY = process.argv.includes('--pair');
+
+// Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
+const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
+const handled = new Set();
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+function isSelfChat(jid, alt) {
+  const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
+  return [jid, alt].some(j => j && mine.includes(digits(j)));
+}
+
+// Sembunyikan log teknis enkripsi WA yang bikin layar penuh ("Closing session…")
+const NOISE = /^(Closing session|Closing open session|Removing old closed session|Decrypted message with closed session|Session error|Failed to decrypt message)/;
+for (const k of ['log', 'info', 'warn', 'error']) {
+  const orig = console[k].bind(console);
+  console[k] = (...a) => { if (typeof a[0] === 'string' && NOISE.test(a[0])) return; orig(...a); };
+}
 if (PAIR_ONLY) setTimeout(() => {                         // kode pairing gak dimasukkan dalam 4 menit
   if (PAIR_DONE) return;
   console.log('\n⏰ Waktu habis, kode pairing kedaluwarsa. Jalankan ulang perintah install untuk dapat kode baru.');
@@ -174,12 +190,20 @@ async function start() {
   });
 
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
-    if (type !== 'notify') return;                       // hanya pesan baru, bukan riwayat
     for (const msg of messages) {
       const jid = msg.key.remoteJid;
       if (!jid || jid === 'status@broadcast') continue;
       const ex = extract(msg);
       if (!ex) continue;
+
+      // Mode 1 nomor: lu ngetik perintah di "Chat ke diri sendiri" (Message yourself)
+      if (SELF && msg.key.fromMe && !isJidGroup(jid) && isSelfChat(jid, msg.key.remoteJidAlt) && isCommand(ex.text)) {
+        if (handled.has(msg.key.id)) continue;
+        handled.add(msg.key.id);
+        await handleCommand(jid, ex.text);
+        continue;
+      }
+      if (type !== 'notify') continue;                   // selain itu: hanya pesan baru, bukan riwayat
 
       if (isJidGroup(jid)) {
         if (msg.key.fromMe) continue;
