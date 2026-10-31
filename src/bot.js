@@ -219,7 +219,8 @@ async function processChat(jid) {
     .all(jid, now - 7 * 864e5).reverse();
   const answeredTs = Math.max(0, ...history.filter(h => h.role === 'user').map(h => h.ts)) + 1;
   let r;
-  try { r = await respond(history); }
+  const first = !db.prepare(`SELECT 1 FROM convo WHERE jid=? AND role='assistant' AND ts > ? LIMIT 1`).get(jid, now - 30 * 864e5);
+  try { r = await respond(history, { first }); }
   catch (e) {
     log('Claude gagal:', e.message);
     return toOwner(`⚠️ Bot gagal balas (${e.message.slice(0, 80)}). Tolong balas manual:\n👤 ${who}\n"${lastUser.slice(0, 300)}"\n${chatLinkFor(chat.num)}`);

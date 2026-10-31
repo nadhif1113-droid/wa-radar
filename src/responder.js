@@ -27,7 +27,7 @@ function knowledge() {
   return '';
 }
 
-function systemPrompt() {
+function systemPrompt(first) {
   return `Kamu admin WhatsApp yang membalas chat customer untuk usaha di bawah ini.
 
 ${knowledge()}
@@ -55,15 +55,21 @@ ${knowledge()}
 - Pertanyaan di luar pengetahuanmu, ATAU customer minta bicara dengan admin.
 Saat handoff, kasih tahu customer dengan santun bahwa admin akan segera menghubungi antum (Insya Allah).
 
-## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
+${first ? `## INI BALASAN PERTAMA UNTUK CUSTOMER INI
+Wajib: (1) jawab salam / beri salam, (2) perkenalkan singkat ("Ahlan wa sahlan, ana admin…"),
+(3) tampilkan "Daftar layanan untuk sapaan pertama" di atas sebagai daftar bernomor,
+(4) lalu langsung tanggapi kebutuhannya kalau sudah jelas, atau tanya antum butuh layanan yang mana.
+Untuk balasan pertama ini boleh lebih panjang dari 4 kalimat.
+
+` : ''}## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
 {"reply": "teks balasan untuk customer, atau null",
  "handoff": true/false,
- "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Kelas Muthowif | Jastip | digiKSA | Lainnya",
+ "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Lainnya",
  "summary": "ringkasan kebutuhan customer + data yang sudah didapat, untuk admin (1–3 baris)"}`;
 }
 
 /** history: [{role:'user'|'assistant', text}] urut lama → baru */
-export async function respond(history) {
+export async function respond(history, { first = false } = {}) {
   if (!client) return null;
   const msgs = [];
   for (const h of history) {
@@ -75,7 +81,7 @@ export async function respond(history) {
   if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return null;
 
   const res = await client.messages.create({
-    model: env.CHAT_MODEL, max_tokens: 800, system: systemPrompt(), messages: msgs,
+    model: env.CHAT_MODEL, max_tokens: 1000, system: systemPrompt(first), messages: msgs,
   });
   const raw = res.content.map(b => b.text || '').join('');
   const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
