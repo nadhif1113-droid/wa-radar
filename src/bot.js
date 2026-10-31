@@ -181,7 +181,7 @@ async function processChat(jid) {
     await toOwner(`💬 *Pesan baru* dari customer yang udah diteruskan (${chat.business || '-'})\n👤 ${who}\n"${lastUser.slice(0, 300)}"\n${chatLinkFor(chat.num)}`);
     if (now - (chat.last_hold_at || 0) > 2 * 36e5) {
       db.prepare('UPDATE chats SET last_hold_at=? WHERE jid=?').run(now, jid);
-      const hold = 'Baik, pesan Bapak/Ibu sudah kami teruskan ke admin. Mohon ditunggu sebentar ya 🙏';
+      const hold = 'Na\'am, pesan antum sudah ana teruskan ke admin. Mohon ditunggu sebentar, Insya Allah segera dibalas. Barakallahu fiikum 🙏';
       await sendAsBot(jid, hold);
       db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(jid, 'assistant', hold, Date.now());
     }

@@ -27,9 +27,8 @@ function line(it, i) {
 function chatLink(it) {
   if (!it.sender_num) return null;
   const what = oneLine(it.summary || it.text, 90).replace(/[*_~]/g, '');
-  const name = it.sender_name && it.sender_name !== 'Anon' ? ` ${it.sender_name.split(/\s+/)[0]}` : '';
-  const msg = `Assalamualaikum${name}, saya lihat di group ${it.group_name} lagi cari: "${what}". ` +
-              `Insya Allah saya bisa bantu, boleh info detailnya?`;
+  const msg = `Assalamu'alaikum warahmatullah. Afwan, ana lihat di group ${it.group_name} antum sedang mencari: "${what}". ` +
+              `Insya Allah ana bisa bantu, boleh info detailnya? Barakallahu fiik 🙏`;
   return `https://wa.me/${it.sender_num}?text=${encodeURIComponent(msg)}`;
 }
 
