@@ -1,0 +1,23 @@
+{
+  "name": "wa-radar",
+  "version": "1.0.0",
+  "description": "Bot pemantau group WhatsApp: saring spam, kirim lead & trend",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tools/test-export.js",
+    "start": "node src/bot.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.9",
+    "node-cron": "^4.6.0",
+    "pino": "^10.4.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "type": "module"
+}
