@@ -26,7 +26,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let sock = null;
 let pairingRequested = false;
 let retries = 0;
+let PAIR_DONE = false;
 const PAIR_ONLY = process.argv.includes('--pair');
+if (PAIR_ONLY) setTimeout(() => {                         // kode pairing gak dimasukkan dalam 4 menit
+  if (PAIR_DONE) return;
+  console.log('\n⏰ Waktu habis, kode pairing kedaluwarsa. Jalankan ulang perintah install untuk dapat kode baru.');
+  process.exit(1);
+}, 4 * 60_000).unref?.();
 
 // ---------- kirim ke WA utama lu ----------
 function ownerJid() { return meta.get(db, 'owner_jid') || `${env.OWNER_NUMBER}@s.whatsapp.net`; }
@@ -147,6 +153,7 @@ async function start() {
       } catch (e) { log('Gagal ambil daftar group:', e.message); }
       if (PAIR_ONLY) {                                     // mode setup: selesai pairing → keluar sendiri
         log('✅ Pairing berhasil. Cek WA utama lu, harusnya ada pesan "Radar Group aktif".');
+        PAIR_DONE = true;
         setTimeout(() => process.exit(0), 8000);
       }
     }
