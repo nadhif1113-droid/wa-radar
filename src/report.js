@@ -152,6 +152,8 @@ export const MENU = `🤖 *RADAR GROUP — MENU*
 *cari kata* — cari pesan penting, contoh: *cari tasreh*
 *chat* — daftar customer yang chat ke nomor ini (per bisnis)
 *autoreply off* / *autoreply on* — matikan/nyalakan balasan otomatis
+*rapikan* — semua group di-mute, diarsipkan, ditandai dibaca (otomatis juga utk group baru)
+*bersihkan* — hapus isi chat semua group (hemat storage), diulang tiap Jumat
 *status* — cek bot hidup
 
 Digest otomatis jam ${env.DIGEST_TIMES.join(' & ')}.`;

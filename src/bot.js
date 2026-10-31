@@ -22,6 +22,9 @@ if (!env.OWNER_NUMBER) { console.error('❌ Isi OWNER_NUMBER di file .env dulu (
 
 const db = openDb();
 initResponderDb(db);
+for (const col of ['last_key TEXT', 'last_ts INTEGER', 'tidied INTEGER DEFAULT 0', 'cleared_at INTEGER DEFAULT 0']) {
+  try { db.exec(`ALTER TABLE groups ADD COLUMN ${col}`); } catch {}
+}
 const MINE = new Set(CATEGORIES.filter(c => c.mine).map(c => c.id));
 const digits = j => (j || '').split('@')[0].split(':')[0].replace(/\D/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -34,7 +37,7 @@ const PAIR_ONLY = process.argv.includes('--pair');
 // Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
 const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
 const handled = new Set();
-const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|autoreply\s+(on|off)|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
 function isSelfChat(jid, alt) {
   const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
   return [jid, alt].some(j => j && mine.includes(digits(j)));
@@ -94,6 +97,24 @@ async function handleCommand(jid, raw) {
                       : '⏸️ Auto-reply chat customer DIMATIKAN. Chat masuk tetap gw teruskan ke lu.');
   }
   if (c === 'chat') return toOwner(buildChats());
+  if (c === 'rapikan') {
+    if ((rest[0] || '').toLowerCase() === 'off') { meta.set(db, 'autotidy', 'off'); return toOwner('⏸️ Rapikan otomatis dimatikan.'); }
+    meta.set(db, 'autotidy', 'on');
+    db.prepare('UPDATE groups SET tidied=0').run();
+    const ready = db.prepare('SELECT jid FROM groups WHERE last_key IS NOT NULL').all();
+    const total = listGroups(db).length;
+    ready.forEach(g => queueTidy(g.jid));
+    return toOwner(`🧹 Merapikan ${ready.length} dari ${total} group sekarang (mute + arsip + tandai dibaca), sekitar ${Math.ceil(ready.length * 4 / 60)} menit.\n` +
+      `${total - ready.length} group sisanya dirapikan otomatis begitu ada pesan baru masuk. Group baru juga otomatis dirapikan.\n` +
+      `_Biar tetap di arsip: di HP nomor bot aktifkan Settings → Chats → Keep chats archived._`);
+  }
+  if (c === 'bersihkan') {
+    if ((rest[0] || '').toLowerCase() === 'off') { meta.set(db, 'autoclear', 'off'); return toOwner('⏸️ Bersihkan mingguan dimatikan.'); }
+    meta.set(db, 'autoclear', 'on');
+    const n = clearAllGroups();
+    return toOwner(`🗑️ Menghapus isi chat ${n} group (hapus untuk saya, group tetap diikuti) supaya storage HP nomor bot lega. ` +
+      `Pesan penting udah tersimpan di bot.\nDiulang otomatis tiap Jumat jam 04:00. Matikan: *bersihkan off*`);
+  }
   if (c === 'digest') return sendDigest(true);
   if (c === 'leads' || c === 'lead') return toOwner(buildLeads(db));
   if (c === 'trend' || c === 'tren') return toOwner(buildTrend(db));
@@ -238,6 +259,42 @@ function buildChats() {
   return out.join('\n');
 }
 
+// ---------- rapikan WA nomor bot: mute + arsip + tandai dibaca + bersihkan ----------
+let tidyChain = Promise.resolve();
+const tidyQueued = new Set();
+function lastMsgs(jid) {
+  const g = db.prepare('SELECT last_key, last_ts FROM groups WHERE jid=?').get(jid);
+  if (!g?.last_key) return null;
+  return [{ key: JSON.parse(g.last_key), messageTimestamp: g.last_ts }];
+}
+function queueTidy(jid) {
+  if (tidyQueued.has(jid)) return;
+  tidyQueued.add(jid);
+  tidyChain = tidyChain.then(async () => {
+    const lm = lastMsgs(jid);
+    if (!lm || !sock) return;
+    try {
+      await sock.chatModify({ mute: Date.now() + 365 * 864e5 }, jid); await sleep(1200);
+      await sock.chatModify({ archive: true, lastMessages: lm }, jid); await sleep(1200);
+      await sock.chatModify({ markRead: true, lastMessages: lm }, jid); await sleep(1200);
+      db.prepare('UPDATE groups SET tidied=1 WHERE jid=?').run(jid);
+    } catch (e) { log('Rapikan gagal', jid, e.message); }
+  }).finally(() => tidyQueued.delete(jid));
+}
+function clearAllGroups() {
+  const rows = db.prepare('SELECT jid FROM groups WHERE last_key IS NOT NULL').all();
+  for (const { jid } of rows) {
+    tidyChain = tidyChain.then(async () => {
+      const lm = lastMsgs(jid);
+      if (!lm || !sock) return;
+      try { await sock.chatModify({ clear: true, lastMessages: lm }, jid); db.prepare('UPDATE groups SET cleared_at=? WHERE jid=?').run(Date.now(), jid); }
+      catch (e) { log('Bersihkan gagal', jid, e.message); }
+      await sleep(1500);
+    });
+  }
+  return rows.length;
+}
+
 // ---------- alert real-time ----------
 async function flushQueue() {
   try {
@@ -352,6 +409,14 @@ async function start() {
       }
 
       if (isJidGroup(jid)) {
+        const k = msg.key;                                    // simpan pesan terakhir (dibutuhkan untuk arsip/bersihkan)
+        if (k.id && (k.fromMe || k.participant)) {
+          db.prepare(`INSERT INTO groups(jid,added) VALUES(?,?) ON CONFLICT(jid) DO NOTHING`).run(jid, Date.now());
+          db.prepare('UPDATE groups SET last_key=?, last_ts=? WHERE jid=?')
+            .run(JSON.stringify({ remoteJid: jid, id: k.id, fromMe: !!k.fromMe, participant: k.participant || undefined }),
+                 Number(msg.messageTimestamp) || Math.floor(Date.now() / 1000), jid);
+          if (meta.get(db, 'autotidy') === 'on' && !db.prepare('SELECT tidied FROM groups WHERE jid=?').get(jid)?.tidied) queueTidy(jid);
+        }
         if (msg.key.fromMe) continue;
         // Cari nomor asli pengirim (WA sering menyamarkan jadi "LID")
         const parts = [msg.key.participant, msg.key.participantAlt].filter(Boolean);
@@ -387,6 +452,7 @@ for (const t of env.DIGEST_TIMES) {
   cron.schedule(`${m} ${h} * * *`, () => sendDigest(), { timezone: env.TIMEZONE });
 }
 cron.schedule('30 3 * * *', () => { prune(db); log('Database dibersihkan'); }, { timezone: env.TIMEZONE });
+cron.schedule('0 4 * * 5', () => { if (meta.get(db, 'autoclear') === 'on') log(`Bersihkan mingguan: ${clearAllGroups()} group`); }, { timezone: env.TIMEZONE });
 
 log(`Radar Group start · AI ${aiEnabled ? 'NYALA (' + env.CLAUDE_MODEL + ')' : 'MATI'} · digest ${env.DIGEST_TIMES.join(', ')} · ` +
     `auto-reply ${replyAvailable ? (env.AUTO_REPLY ? 'NYALA ' + env.REPLY_HOURS : 'MATI') : 'MATI (butuh API key)'}`);
