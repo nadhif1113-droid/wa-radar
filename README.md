@@ -1,6 +1,6 @@
 # 📡 Radar Group — Bot WA Penyaring Group
 
-Bot ini **cuma membaca** group WhatsApp. Ke group, bot gak pernah kirim apa pun. Semua hasilnya dikirim ke WA utama lu:
+Bot ini **cuma membaca** group WhatsApp. Ke group, bot gak pernah kirim apa pun. Bot juga **gak pernah ngechat duluan** ke orang asing, cuma membalas chat yang masuk. Semua hasilnya dikirim ke WA utama lu:
 
 - 🔔 **Alert langsung** begitu ada orang yang butuh layanan lu (tebengan/transport, muthowif, visa/iqomah, tamis, bagasi)
 - 📋 **Digest otomatis jam 07:00 & 19:00**: isinya pertanyaan, kebutuhan, dan info penting. Iklan copy-paste dan media udah dibuang
@@ -72,6 +72,18 @@ Cek log: `pm2 logs radar` · Restart: `pm2 restart radar`
 | `status` | Cek bot hidup |
 
 ---
+
+## 💬 Auto-reply chat customer (nomor bisnis)
+Kalau ada orang yang ngechat **duluan** ke nomor bot (misalnya dari iklan Meta), bot bakal:
+1. Nunggu ~12 detik, karena customer sering ngirim beberapa pesan beruntun. Setelah itu bot menampilkan "sedang mengetik" dan baru membalas, dengan bahasa yang sama kayak customer.
+2. Ngenalin layanan yang dimaksud (SupirIndo, PT. MII, muthowif, pindah kafil, tamis, Kelas Muthowif, jastip, digiKSA), terus nanya data yang masih kurang.
+3. **Gak pernah nyebut harga, kurs, atau konfirmasi booking.** Kalau datanya udah cukup, atau customer minta harga, chat-nya **diteruskan ke WA utama lu** dengan ringkasan (🤝 CUSTOMER SIAP DILAYANI). Setelah itu bot diam 12 jam di chat tersebut.
+4. Kalau lu bales manual dari HP nomor bisnis, bot **berhenti 24 jam** di chat itu.
+
+Butuh API key Claude. Cara isinya: jalankan ulang perintah install, terus paste key-nya waktu diminta.
+Perintah: `autoreply off` / `autoreply on` · `chat` (daftar customer per bisnis).
+Isi pengetahuan bot ada di `bisnis.example.md`. Kalau mau diubah, salin jadi `bisnis.md` lalu edit.
+Jam balas diatur lewat `REPLY_HOURS` di `.env` (default 24 jam).
 
 ## AI Claude (opsional, disarankan)
 Tanpa AI, bot tetap jalan pakai saringan kata kunci. Kelemahannya, kadang iklan atau ajakan ikut ketangkep sebagai pertanyaan.

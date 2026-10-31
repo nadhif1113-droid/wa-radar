@@ -34,7 +34,17 @@ if [ ! -f .env ]; then
   sed -i "s/^BOT_NUMBER=.*/BOT_NUMBER=${BOTNUM//[^0-9]/}/" .env
   sed -i "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=${APIKEY}|" .env
 else
-  say "3/5 File .env sudah ada, dilewati (edit: nano $DIR/.env)"
+  say "3/5 Data nomor sudah ada, dilewati (edit: nano $DIR/.env)"
+  if ! grep -q '^ANTHROPIC_API_KEY=sk-' .env; then
+    echo "API key Claude belum diisi. Tanpa key, saringan pakai kata kunci dan auto-reply chat mati."
+    read -rp "Paste API key Claude (atau Enter untuk lewati): " APIKEY
+    if [ -n "$APIKEY" ]; then
+      APIKEY="$(echo "$APIKEY" | tr -d '[:space:]')"
+      if grep -q '^ANTHROPIC_API_KEY=' .env; then sed -i "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=${APIKEY}|" .env
+      else echo "ANTHROPIC_API_KEY=${APIKEY}" >> .env; fi
+      echo "API key tersimpan."
+    fi
+  fi
 fi
 
 if [ ! -f auth/creds.json ]; then

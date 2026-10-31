@@ -13,6 +13,11 @@ export const env = {
   ALERT_MINE: (process.env.ALERT_MINE || 'true') === 'true',          // kirim lead layanan lu langsung
   RETAIN_DAYS: Number(process.env.RETAIN_DAYS || 30),
   DB_PATH: process.env.DB_PATH || './data/radar.db',
+  // Auto-reply chat pribadi yang masuk (butuh ANTHROPIC_API_KEY)
+  AUTO_REPLY: (process.env.AUTO_REPLY || 'true') === 'true',
+  CHAT_MODEL: process.env.CHAT_MODEL || 'claude-sonnet-5-5',
+  REPLY_HOURS: process.env.REPLY_HOURS || '00:00-24:00',        // jam bot boleh membalas
+  REPLY_MAX_PER_CHAT_DAY: Number(process.env.REPLY_MAX_PER_CHAT_DAY || 25),
 };
 
 // Kategori. mine:true = layanan yang lu jual → lead-nya dikirim langsung (alert real-time).
