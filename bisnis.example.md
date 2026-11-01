@@ -10,10 +10,12 @@ paham lapangan Makkah–Madinah–Jeddah. Melayani jamaah dan wisatawan Indonesi
 ### 1. SupirIndo — transport & ziarah dengan supir Indonesia
 Jaringan supir Indonesia di Arab Saudi (base Madinah). SEMUA unit dengan supir Indonesia, paham jamaah Indonesia.
 Website (harga lengkap & booking online): supirindo.com · Instagram: @supirindo
-Armada 7 kelas: Sedan, SUV (Kia Sorento, 4–5 orang), Staria, Hiace, GMC, Coaster, Bus. Kapasitas selain SUV dikonfirmasi admin.
+Armada 7 kelas & kapasitas: Sedan 1–3 orang · SUV 4–5 (Kia Sorento) · Staria 7–9 · Hiace 10–13 · GMC 4–8 · Coaster 16–18 · Bus untuk rombongan besar.
+Pilihkan mobil sesuai jumlah orang + koper; kalau ragu, sebut 2 pilihan dan biar admin yang pastikan.
 Layanan: jemput/antar bandara (Jeddah, Madinah), antar kota Makkah ⇄ Madinah, antar-jemput stasiun kereta cepat,
 ziarah Madinah & Makkah (Half Day / Full Day), Thaif, AlUla, Badr, Jabal Magnet, Khandamah, Miqat, Hudaibiyah,
-keliling kota, tour guide, dan Sirah Trip (napak tilas sirah per modul: Quba, Uhud, Khandaq).
+keliling kota, tour guide umrah berbahasa Indonesia, Sirah Trip (napak tilas sirah per modul: Quba, Uhud, Khandaq — sudah termasuk pemandu sirah, mobil private, jemput dari hotel),
+serta wisata: Berkuda, Ngopi Cantik (2–3 jam), Jabal Uhud / 'Ayr, Jeddah Adventure.
 Paket Full Trip = jemput bandara → hotel + ziarah Half Day Makkah & Madinah + antar kota + antar hotel → bandara.
 Data: tanggal & jam, rute (dari → ke), jumlah orang & koper, nomor penerbangan (kalau bandara), nama hotel, pilihan mobil.
 Ketentuan: harga per MOBIL (bukan per orang); parkir belum termasuk (Terminal Haji, area Quba, miqat);
@@ -59,36 +61,40 @@ Main padel di Madinah, cocok untuk rombongan, keluarga, mahasiswa, atau jamaah y
 Data: tanggal & jam main, jumlah orang (maks 7), lokasi jemput (nama hotel/alamat), pernah main padel atau baru pertama.
 
 ## Harga yang BOLEH disebut
-### SupirIndo — harga per mobil (SAR)
-Urutan kolom: Sedan / SUV / Staria / Hiace / GMC / Bus  (Coaster: tanyakan admin)
-- Bandara Jeddah → Hotel Makkah: 340 / 350 / 360 / 540 / 550 / 900
-- Bandara Jeddah ⇄ Madinah: 600 / 650 / 720 / 840 / 1000 / 1300
-- Makkah ⇄ Madinah: 530 / 650 / 720 / 840 / 1200 / 1300
-- Bandara Madinah → Hotel Madinah: 240 / 350 / 550 / 550 / 450 / 750
-- Hotel Madinah → Bandara Madinah: 180 / 250 / 450 / 450 / 350 / 700
-- Stasiun → Hotel Madinah: 180 / 250 / 300 / 300 / 450 / 500
-- Hotel Madinah → Stasiun: 180 / 350 / 350 / 300 / 350 / 500
-- Ziarah Madinah Half Day (±3–4 jam): 270 / 300 / 360 / 420 / 400 / 650 · Full Day (±7–8 jam): 540 / 600 / 720 / 840 / 800 / 1300
-- Ziarah Makkah Half Day (±4–5 jam): 290 / 350 / 360 / 480 / 450 / 650 · Full Day (±7–8 jam): 580 / 700 / 720 / 960 / 900 / 1300
-- Thaif (±7–8 jam): 600 / 700 / 720 / 900 / 1200 / 1000
-- AlUla (±1 hari): 1400 / 1500 / 1800 / 1700 / 2200 / 3000
-- Badr (±5–6 jam): 540 / 600 / 800 / 800 / 1500 / 1200
-- Jabal Magnet (±2–3 jam): 280 / 300 / 500 / 500 / 400 / 650
-- Khandamah (±2 jam): 230 / 250 / 250 / 360 / 400 / 450
-- Miqat Tan'im / Ji'ranah (±1–2 jam): 240 / 300 / 300 / 360 / 400 / 600
-- Hudaibiyah (±2–3 jam): 380 / 400 / 400 / 480 / 500 / 800
-- Paket Full Trip: Sedan 2350 · SUV 2500 · Staria 2500 · Hiace 2700 · GMC 3500 · Bus 3000
+### SupirIndo — harga per mobil (SAR), sesuai supirindo.com
+Urutan kolom: Sedan / SUV / Staria / Hiace / GMC / Coaster / Bus
+- Bandara Jeddah → Makkah: 340 / 350 / 360 / 540 / 550 / 720 / 900
+- Bandara Jeddah ⇄ Madinah: 600 / 650 / 720 / 840 / 1000 / 1200 / 1300
+- Makkah ⇄ Madinah: 530 / 650 / 720 / 840 / 1200 / 1200 / 1300
+- Bandara Madinah → Hotel Madinah: 240 / 350 / 550 / 550 / 450 / 600 / 750
+- Hotel Madinah → Bandara Madinah: 180 / 250 / 450 / 450 / 350 / 500 / 700
+- Stasiun → Hotel Madinah: 180 / 250 / 300 / 300 / 450 / 450 / 500
+- Hotel Madinah → Stasiun: 180 / 350 / 350 / 300 / 350 / 400 / 500
+- Ziarah Madinah Half Day (±3–4 jam): 270 / 300 / 360 / 420 / 400 / 600 / 650
+- Ziarah Madinah Full Day (±7–8 jam): 540 / 600 / 720 / 840 / 800 / 1200 / 1300
+- Ziarah Makkah Half Day (±4–5 jam): 290 / 350 / 360 / 480 / 450 / 600 / 650
+- Ziarah Makkah Full Day (±7–8 jam): 580 / 700 / 720 / 960 / 900 / 1200 / 1300
+- Thaif (±7–8 jam): 600 / 700 / 720 / 900 / 1200 / 950 / 1000
+- AlUla (±1 hari penuh): 1400 / 1500 / 1800 / 1700 / 2200 / 2400 / 3000
+- Badr (±5–6 jam): 540 / 600 / 800 / 800 / 1500 / 1000 / 1200
+- Jabal Magnet (±2–3 jam): 280 / 300 / 500 / 500 / 400 / 600 / 650
+- Khandamah (±2 jam): 230 / 250 / 250 / 360 / 400 / 400 / 450
+- Miqat Tan'im / Ji'ranah (±1–2 jam): 240 / 300 / 300 / 360 / 400 / 480 / 600
+- Hudaibiyah (±2–3 jam): 380 / 400 / 400 / 480 / 500 / 600 / 800
+- Paket Full Trip: Sedan 2350 · SUV 2500 · Staria 2500 · Hiace 2700 · GMC 3500 · Bus 3000 (Coaster: admin cek dulu)
   (kalau total harga satuan lebih murah dari paket, pakai yang lebih murah untuk jamaah)
-- Sirah Trip per modul: SUV 550 · Staria/GMC 700 · Hiace 850
-- Keliling kota: 50 SAR per 30 menit · Tour guide: 250 SAR per sesi / per hari
-Rute yang tidak ada di daftar ini (misalnya Hotel Makkah → Bandara Jeddah, city tour Jeddah) atau mobil Coaster: bilang admin cek dulu (handoff).
-Saat menyebut harga SupirIndo, selalu tambahkan: harga per mobil, parkir belum termasuk, final dikonfirmasi admin.
+- Sirah Trip Madinah per modul: SUV 550 · Staria 700 · GMC 700 · Hiace 850
+- Keliling kota Makkah/Madinah: 50 SAR per 30 menit
+- Tour guide umrah: 250 SAR per hari · tambah tour guide +250 SAR per sesi
+- Wisata (mulai dari): Ngopi Cantik 150 · Jabal Uhud/'Ayr 200 · Berkuda 200 (belum termasuk sewa kuda & fotografer) · Jeddah Adventure 400 per orang
+Rute yang tidak ada di daftar ini (misalnya Hotel Makkah → Bandara Jeddah, city tour Jeddah): bilang admin cek dulu (handoff).
+Saat menyebut harga SupirIndo, selalu tambahkan: harga per mobil (bukan per orang), parkir di Terminal Haji/Quba/miqat belum termasuk, harga bisa menyesuaikan musim, final dikonfirmasi admin. Boleh arahkan juga ke supirindo.com untuk lihat daftar lengkap.
 
 ### Lainnya
 - Paket Padel Madinah: mulai dari 450 SAR per paket (1 court, 2 jam, maks 7 orang, termasuk raket, bola, minum, transport)
 
 ## Daftar layanan untuk sapaan pertama (pakai urutan ini)
-1. *SupirIndo*: transport pribadi, jemput bandara, Makkah–Madinah, ziarah & city tour
+1. *SupirIndo*: transport & jemput bandara, Makkah–Madinah, ziarah, Thaif, AlUla, berkuda & wisata (supir Indonesia)
 2. *PT. MII*: LA, hotel, visa & handling bandara/hotel untuk travel umrah
 3. *Muthowif* berbahasa Indonesia untuk umrah & ziarah
 4. *Jasa pindah kafil* (naql kafalah) untuk WNI di Saudi
