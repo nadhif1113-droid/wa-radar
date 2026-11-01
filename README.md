@@ -83,8 +83,8 @@ Semua angka itu harga iklan, bukan harga deal. Data disimpan 120 hari.
 ## 💬 Auto-reply chat customer (nomor bisnis)
 Kalau ada orang yang ngechat **duluan** ke nomor bot (misalnya dari iklan Meta), bot bakal:
 1. Nunggu ~12 detik, karena customer sering ngirim beberapa pesan beruntun. Setelah itu bot menampilkan "sedang mengetik" dan baru membalas, dengan bahasa yang sama kayak customer.
-2. Ngenalin layanan yang dimaksud (SupirIndo, PT. MII, muthowif, pindah kafil, tamis, jastip, digiKSA). Sapaan pertama ke customer baru selalu menyebut daftar layanan, terus nanya data yang masih kurang.
-3. **Gak pernah nyebut harga, kurs, atau konfirmasi booking.** Kalau datanya udah cukup, atau customer minta harga, chat-nya **diteruskan ke WA utama lu** dengan ringkasan (🤝 CUSTOMER SIAP DILAYANI). Setelah itu bot diam 12 jam di chat tersebut.
+2. Ngenalin layanan yang dimaksud (SupirIndo, PT. MII, muthowif, pindah kafil, tamis, jastip, digiKSA, paket padel). Sapaan pertama ke customer baru selalu menyebut daftar layanan, terus nanya data yang masih kurang.
+3. **Gak nyebut harga atau kurs (kecuali yang ada di bagian "Harga yang BOLEH disebut", misalnya padel mulai 450 SAR), dan gak konfirmasi booking.** Kalau datanya udah cukup, atau customer minta harga, chat-nya **diteruskan ke WA utama lu** dengan ringkasan (🤝 CUSTOMER SIAP DILAYANI). Setelah itu bot diam 12 jam di chat tersebut.
 4. Kalau lu bales manual dari HP nomor bisnis, bot **berhenti 24 jam** di chat itu.
 
 Butuh API key Claude. Cara isinya: jalankan ulang perintah install, terus paste key-nya waktu diminta.
