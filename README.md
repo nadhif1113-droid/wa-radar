@@ -92,6 +92,16 @@ Perintah: `autoreply off` / `autoreply on` · `chat` (daftar customer per bisnis
 Isi pengetahuan bot ada di `bisnis.example.md`. Kalau mau diubah, salin jadi `bisnis.md` lalu edit.
 Jam balas diatur lewat `REPLY_HOURS` di `.env` (default 24 jam).
 
+## 📅 Order & prospek (CRM di dalam WA)
+- Tiap chat customer di nomor bisnis dibaca AI 3 menit setelah obrolan reda, lalu diberi tahap: ⚪ baru · 🟡 prospek · 🔥 hot · ✅ deal · 🏁 selesai · ❌ batal.
+  Termasuk chat yang lu balas manual dari HP nomor bisnis.
+- Chat di HP nomor bisnis otomatis dikasih **label WhatsApp Business**: Prospek / Hot Lead / Deal / Selesai.
+- Order yang ada tanggalnya disimpan otomatis. Deal baru langsung dikabari ke WA utama.
+- **Tiap 07:30**: jadwal hari ini, besok (H-1), lusa (H-2) + checklist + prospek yang perlu di-follow up.
+- **3 jam sebelum jemput**: pengingat sekali lagi. **Tiap 21:00**: rekap hari itu.
+- Order yang closing lewat nomor utama: ketik ke bot *catat …* (bahasa bebas), nanti ikut diingatkan.
+- Perintah: *order* · *prospek* · *rekap* · *catat …* · *ubah 12 …* · *deal 12* · *selesai 12* · *batal 12*
+
 ## AI Claude (opsional, disarankan)
 Tanpa AI, bot tetap jalan pakai saringan kata kunci. Kelemahannya, kadang iklan atau ajakan ikut ketangkep sebagai pertanyaan.
 Dengan AI, tiap calon lead dicek ulang sama Claude: dipastikan beneran pertanyaan, diringkas, dan ditandai ⚡ kalau mendesak.

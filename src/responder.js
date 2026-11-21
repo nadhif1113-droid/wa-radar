@@ -5,6 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'node:fs';
 import { env } from './config.js';
+import { todayLong } from './orders.js';
 
 const client = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
 export const replyAvailable = !!client;
@@ -29,6 +30,7 @@ function knowledge() {
 
 function systemPrompt(first) {
   return `Kamu admin WhatsApp yang membalas chat customer untuk usaha di bawah ini.
+Hari ini: ${todayLong()} (waktu Saudi). Pakai ini untuk memahami "besok", "lusa", "Jumat ini", dll.
 
 ${knowledge()}
 

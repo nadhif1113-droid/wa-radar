@@ -18,6 +18,10 @@ export const env = {
   CHAT_MODEL: process.env.CHAT_MODEL || 'claude-sonnet-5-5',
   REPLY_HOURS: process.env.REPLY_HOURS || '00:00-24:00',        // jam bot boleh membalas
   REPLY_MAX_PER_CHAT_DAY: Number(process.env.REPLY_MAX_PER_CHAT_DAY || 25),
+  // Order & prospek
+  ORDER_TIME: process.env.ORDER_TIME || '07:30',               // jadwal order pagi (hari ini, H-1, H-2)
+  RECAP_TIME: process.env.RECAP_TIME || '21:00',               // rekap malam
+  WA_LABELS: (process.env.WA_LABELS || 'true') === 'true',     // tandai chat pakai label WA Business
 };
 
 // Kategori. mine:true = layanan yang lu jual → lead-nya dikirim langsung (alert real-time).

@@ -158,7 +158,16 @@ export const MENU = `🤖 *RADAR GROUP — MENU*
 *bersihkan* — hapus isi chat semua group (hemat storage), diulang tiap Jumat
 *status* — cek bot hidup
 
-Digest otomatis jam ${env.DIGEST_TIMES.join(' & ')}. Laporan harga tiap Sabtu 08:00.`;
+📅 *ORDER & PROSPEK*
+*order* — jadwal order 14 hari ke depan
+*prospek* — customer prospek & hot yang harus dikejar
+*rekap* — rekap hari ini
+*catat …* — catat order dari nomor utama, bahasa bebas. Contoh:
+   _catat Pak Budi 0812xxx jemput bandara Madinah ke hotel 25 Nov jam 14.00, Hiace 8 orang, 550_
+*ubah 12 …* — ubah order #12, contoh: _ubah 12 jadi tgl 28 jam 9 pagi_
+*deal 12* / *selesai 12* / *batal 12* — ubah status order
+
+Digest otomatis jam ${env.DIGEST_TIMES.join(' & ')}. Jadwal order tiap ${env.ORDER_TIME} (hari ini, H-1, H-2), rekap ${env.RECAP_TIME}. Laporan harga tiap Sabtu 08:00.`;
 
 export function buildLeads(db, now = Date.now()) {
   const items = db.prepare(`SELECT * FROM items WHERE kind='tanya' AND ts>=? ORDER BY ts DESC`).all(now - 864e5)

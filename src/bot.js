@@ -17,6 +17,8 @@ import { buildAlert, buildDigest, buildTrend, buildGroups, buildLeads, buildSear
 import { CATEGORIES } from './config.js';
 import { respond, replyAvailable, initResponderDb } from './responder.js';
 import { initPriceDb, buildPriceReport, buildPriceDetail } from './pricereport.js';
+import { initOrdersDb, analyzeChat, syncChatOrders, addManualOrder, editOrder, setOrderStatus, ordersAI,
+         buildOrders, buildProspects, buildAgenda, buildRecap, buildNewDeal, dueSoon, pruneOrders, orderLine, STAGE_ICON } from './orders.js';
 
 const log = (...a) => console.log(new Date().toISOString().slice(0, 19).replace('T', ' '), ...a);
 if (!env.OWNER_NUMBER) { console.error('❌ Isi OWNER_NUMBER di file .env dulu (nomor WA utama lu, contoh 9665xxxxxxx)'); process.exit(1); }
@@ -24,6 +26,7 @@ if (!env.OWNER_NUMBER) { console.error('❌ Isi OWNER_NUMBER di file .env dulu (
 const db = openDb();
 initResponderDb(db);
 initPriceDb(db);
+initOrdersDb(db);
 for (const col of ['last_key TEXT', 'last_ts INTEGER', 'tidied INTEGER DEFAULT 0', 'cleared_at INTEGER DEFAULT 0']) {
   try { db.exec(`ALTER TABLE groups ADD COLUMN ${col}`); } catch {}
 }
@@ -39,7 +42,7 @@ const PAIR_ONLY = process.argv.includes('--pair');
 // Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
 const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
 const handled = new Set();
-const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|order|orders|jadwal|prospek|rekap|(deal|selesai|batal)\s+#?\d+|ubah\s+#?\d+\s+[\s\S]+|catat\s+[\s\S]+|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
 function isSelfChat(jid, alt) {
   const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
   return [jid, alt].some(j => j && mine.includes(digits(j)));
@@ -99,6 +102,40 @@ async function handleCommand(jid, raw) {
                       : '⏸️ Auto-reply chat customer DIMATIKAN. Chat masuk tetap gw teruskan ke lu.');
   }
   if (c === 'chat') return toOwner(buildChats());
+  if (c === 'order' || c === 'orders' || c === 'jadwal') return toOwner(buildOrders(db));
+  if (c === 'prospek') return toOwner(buildProspects(db));
+  if (c === 'rekap') return toOwner(buildRecap(db));
+  if (c === 'catat') {
+    const body = t.slice(cmd.length).trim();
+    if (!body) return toOwner('Format: *catat <detail order>*\nContoh: _catat Pak Budi 0812xxx jemput bandara Madinah ke hotel 25 Nov jam 14.00, Hiace 8 orang, 550_');
+    try {
+      const os = await addManualOrder(db, body);
+      if (!os.length) return toOwner('⚠️ Gak nemu detail order di catatan itu. Coba tulis layanan + tanggal + nama customer.');
+      const noDate = os.some(o => !o.tanggal);
+      return toOwner(`📝 *Tercatat ${os.length} order*\n\n${os.map(o => orderLine(o, { withDate: true })).join('\n')}` +
+        (noDate ? '\n\n⚠️ Ada yang belum ada tanggalnya → gak bisa diingatkan. *ubah <no> tgl …*' : '') +
+        `\n\n_Salah? *ubah ${os[0].id} …* / *batal ${os[0].id}*_`);
+    } catch (e) { return toOwner(`⚠️ Gagal mencatat: ${e.message.slice(0, 100)}`); }
+  }
+  if (c === 'ubah') {
+    const id = Number((rest[0] || '').replace('#', ''));
+    const body = t.slice(cmd.length).trim().replace(/^#?\d+\s*/, '');
+    if (!id || !body) return toOwner('Format: *ubah <no> <perubahan>*, contoh: _ubah 12 jadi tgl 28 jam 9 pagi, GMC_');
+    try {
+      const o = await editOrder(db, id, body);
+      return toOwner(o ? `✏️ *Order diubah*\n\n${orderLine(o, { withDate: true })}` : `Order #${id} gak ada. Ketik *order* untuk lihat nomornya.`);
+    } catch (e) { return toOwner(`⚠️ Gagal mengubah: ${e.message.slice(0, 100)}`); }
+  }
+  if (['deal', 'selesai', 'batal'].includes(c)) {
+    const id = Number((rest[0] || '').replace('#', ''));
+    const o = id && setOrderStatus(db, id, c);
+    if (o?.jid) {
+      const st = c === 'deal' ? 'deal' : c;
+      db.prepare('UPDATE chats SET stage=?, stage_at=? WHERE jid=?').run(st, Date.now(), o.jid);
+      setLabel(o.jid, st);
+    }
+    return toOwner(o ? `${c === 'deal' ? '✅' : c === 'selesai' ? '🏁' : '❌'} Order #${id} → *${c}*\n${orderLine(o, { withDate: true })}` : `Order #${id} gak ada. Ketik *order* untuk lihat nomornya.`);
+  }
   if (c === 'harga') return toOwner(rest.length ? buildPriceDetail(db, rest.join(' ')) : buildPriceReport(db));
   if (c === 'rapikan') {
     if ((rest[0] || '').toLowerCase() === 'off') { meta.set(db, 'autotidy', 'off'); return toOwner('⏸️ Rapikan otomatis dimatikan.'); }
@@ -173,6 +210,62 @@ async function onPrivateMessage(msg, jid, ex) {
   lastKey.set(jid, msg.key);
   clearTimeout(timers.get(jid));
   schedule(jid, 12_000);
+  scheduleAnalyze(jid);
+}
+
+// ---------- CRM: analisis chat → tahap prospek + order + label ----------
+const anaTimers = new Map();
+let anaChain = Promise.resolve();
+function scheduleAnalyze(jid, ms = Number(process.env.ANALYZE_DELAY_MS) || 3 * 60_000) {          // tunggu obrolan reda 3 menit, baru dianalisis
+  if (!ordersAI) return;
+  clearTimeout(anaTimers.get(jid));
+  anaTimers.set(jid, setTimeout(() => {
+    anaTimers.delete(jid);
+    anaChain = anaChain.then(() => analyze(jid)).catch(e => log('Analisis chat gagal:', e.message));
+  }, ms));
+}
+async function analyze(jid) {
+  const chat = db.prepare('SELECT * FROM chats WHERE jid=?').get(jid);
+  if (!chat) return;
+  const history = db.prepare(`SELECT role, text, ts FROM convo WHERE jid=? AND ts > ? ORDER BY ts DESC, id DESC LIMIT 40`)
+    .all(jid, Date.now() - 30 * 864e5).reverse();
+  if (!history.some(h => h.role === 'user')) return;
+  const a = await analyzeChat(history);
+  if (!a) return;
+  const prev = chat.stage || 'baru';
+  db.prepare(`UPDATE chats SET stage=?, ringkas=?, followup=?, business=COALESCE(business, ?), analyzed_at=?, stage_at=CASE WHEN stage IS ? THEN stage_at ELSE ? END WHERE jid=?`)
+    .run(a.stage, a.ringkas, a.followup, a.business, Date.now(), a.stage, Date.now(), jid);
+  const deals = syncChatOrders(db, { ...chat, jid }, a);
+  await setLabel(jid, a.stage);
+  const who = `${chat.name || 'Tanpa nama'} · ${fmtNum(chat.num)}`;
+  for (const o of deals) await toOwner(buildNewDeal({ ...o, business: a.business }, chat) + (chat.num ? '' : `\n👤 ${who}`));
+  const recentHandoff = chat.handoff_at && Date.now() - chat.handoff_at < 6 * 36e5;
+  if (a.stage === 'hot' && prev !== 'hot' && !deals.length && !recentHandoff) {
+    await toOwner(`🔥 *HOT LEAD — ${a.business}*\n${a.ringkas}\n👉 ${a.followup}\n\n👤 ${who}\n${chatLinkFor(chat.num)}`);
+  }
+}
+
+// ---------- label WhatsApp Business (Prospek / Hot / Deal / Selesai) ----------
+const LABELS = { prospek: ['Prospek', 2], hot: ['Hot Lead', 0], deal: ['Deal', 6], selesai: ['Selesai', 12] };
+async function labelId(stage) {
+  const [name, color] = LABELS[stage];
+  let id = meta.get(db, 'label_' + stage);
+  if (id) return id;
+  id = String(Math.max(20, Number(meta.get(db, 'label_max')) || 0) + 1);   // id tinggi biar gak bentrok label bawaan
+  await sock.addLabel(ownerJid(), { id, name, color, deleted: false });
+  meta.set(db, 'label_' + stage, id); meta.set(db, 'label_max', id);
+  return id;
+}
+async function setLabel(jid, stage) {
+  if (!env.WA_LABELS || !sock?.addChatLabel) return;
+  try {
+    const chat = db.prepare('SELECT label FROM chats WHERE jid=?').get(jid);
+    const want = LABELS[stage] ? stage : null;
+    if ((chat?.label || null) === want) return;
+    if (chat?.label && LABELS[chat.label]) await sock.removeChatLabel(jid, await labelId(chat.label));
+    if (want) await sock.addChatLabel(jid, await labelId(want));
+    db.prepare('UPDATE chats SET label=? WHERE jid=?').run(want, jid);
+  } catch (e) { log('Label gagal:', e.message); }
 }
 
 function schedule(jid, ms) {
@@ -257,7 +350,7 @@ function buildChats() {
     out.push('', `*${biz}* (${list.length})`);
     for (const r of list) {
       const st = r.paused_until > Date.now() ? '✋ manual' : r.handoff_at ? '🤝 diteruskan' : '🤖 bot';
-      out.push(`• ${r.name || 'Tanpa nama'} ${fmtNum(r.num)} · ${st}`, `   ${(r.summary || '').slice(0, 140)}`);
+      out.push(`${STAGE_ICON[r.stage || 'baru'] || '•'} ${r.name || 'Tanpa nama'} ${fmtNum(r.num)} · ${st}`, `   ${(r.ringkas || r.summary || '').slice(0, 140)}`);
     }
   }
   return out.join('\n');
@@ -384,6 +477,13 @@ async function start() {
     }
   });
 
+  sock.ev.on('labels.edit', l => {                       // catat label yang sudah ada biar id gak bentrok
+    try {
+      if (/^\d+$/.test(l.id) && Number(l.id) > (Number(meta.get(db, 'label_max')) || 0)) meta.set(db, 'label_max', l.id);
+      for (const [st, [name]] of Object.entries(LABELS)) if (l.name === name && !l.deleted) meta.set(db, 'label_' + st, l.id);
+    } catch {}
+  });
+
   sock.ev.on('groups.update', ups => {
     for (const u of ups) if (u.id && u.subject) ensureGroup(db, u.id, u.subject);
   });
@@ -409,6 +509,7 @@ async function start() {
         db.prepare(`INSERT INTO chats(jid,paused_until,last_ts) VALUES(?,?,?)
                     ON CONFLICT(jid) DO UPDATE SET paused_until=excluded.paused_until`).run(jid, Date.now() + 24 * 36e5, Date.now());
         db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(jid, 'assistant', ex.text || '[admin]', Date.now());
+        scheduleAnalyze(jid);
         continue;
       }
 
@@ -455,7 +556,14 @@ for (const t of env.DIGEST_TIMES) {
   const [h, m] = t.split(':').map(Number);
   cron.schedule(`${m} ${h} * * *`, () => sendDigest(), { timezone: env.TIMEZONE });
 }
-cron.schedule('30 3 * * *', () => { prune(db); log('Database dibersihkan'); }, { timezone: env.TIMEZONE });
+cron.schedule('30 3 * * *', () => { prune(db); pruneOrders(db); log('Database dibersihkan'); }, { timezone: env.TIMEZONE });
+const at = t => { const [h, m] = t.split(':').map(Number); return `${m} ${h} * * *`; };
+cron.schedule(at(env.ORDER_TIME), () => { toOwner(buildAgenda(db)); log('Jadwal order pagi terkirim'); }, { timezone: env.TIMEZONE });
+cron.schedule(at(env.RECAP_TIME), () => { toOwner(buildRecap(db)); log('Rekap malam terkirim'); }, { timezone: env.TIMEZONE });
+setInterval(async () => {                                   // 3 jam sebelum jemput → ingatkan
+  try { for (const o of dueSoon(db)) await toOwner(`⏰ *${o.jam} HARI INI*\n${orderLine(o)}\n☑️ Supir udah jalan? Customer udah dikabari?`); }
+  catch (e) { log('Pengingat order error:', e.message); }
+}, 10 * 60_000);
 cron.schedule('0 8 * * 6', () => { toOwner(buildPriceReport(db)); log('Laporan harga mingguan terkirim'); }, { timezone: env.TIMEZONE });
 cron.schedule('0 4 * * 5', () => { if (meta.get(db, 'autoclear') === 'on') log(`Bersihkan mingguan: ${clearAllGroups()} group`); }, { timezone: env.TIMEZONE });
 
