@@ -72,7 +72,7 @@ Bubble 2: tanggapan untuk kebutuhan/pertanyaannya saja, 1–3 kalimat pendek, ma
 ` : ''}## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
 {"replies": ["bubble pertama", "bubble kedua (kalau perlu)"]  ← tiap item dikirim sebagai chat terpisah. Biasanya cukup 1 bubble. [] = tidak membalas.
  "handoff": true/false,
- "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Padel | Lainnya",
+ "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Lainnya",
  "summary": "ringkasan kebutuhan customer + data yang sudah didapat, untuk admin (1–3 baris)"}`;
 }
 

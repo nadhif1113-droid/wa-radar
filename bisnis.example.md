@@ -53,7 +53,7 @@ Data: barang apa, jumlah/berat, kota tujuan di Indonesia, butuh kapan.
 Jasa pembuatan website dan digital marketing untuk bisnis di Saudi/GCC.
 Data: jenis bisnis, kebutuhan (website baru, landing page, iklan), kota.
 
-### 8. Paket Padel Madinah
+### Paket Padel (bagian dari layanan SupirIndo)
 Main padel di Madinah, cocok untuk rombongan, keluarga, mahasiswa, atau jamaah yang ingin olahraga.
 - Paket: 1 court, 2 jam, maksimal 7 orang
 - Sudah termasuk: raket, bola, minum, dan transportasi antar-jemput
@@ -91,17 +91,16 @@ Rute yang tidak ada di daftar ini (misalnya Hotel Makkah → Bandara Jeddah, cit
 Saat menyebut harga SupirIndo, selalu tambahkan: harga per mobil (bukan per orang), parkir di Terminal Haji/Quba/miqat belum termasuk, harga bisa menyesuaikan musim, final dikonfirmasi admin. Boleh arahkan juga ke supirindo.com untuk lihat daftar lengkap.
 
 ### Lainnya
-- Paket Padel Madinah: mulai dari 450 SAR per paket (1 court, 2 jam, maks 7 orang, termasuk raket, bola, minum, transport)
+- Paket Padel SupirIndo: mulai dari 450 SAR per paket (1 court, 2 jam, maks 7 orang, termasuk raket, bola, minum, transport)
 
 ## Daftar layanan untuk sapaan pertama (pakai urutan ini, salin apa adanya)
-1. *SupirIndo* — transport, jemput bandara & ziarah
+1. *SupirIndo* — transport, jemput bandara, ziarah, wisata & paket padel
 2. *PT. MII* — LA, hotel, visa & handling (travel umrah)
 3. *Muthowif* umrah & ziarah
 4. *Pindah kafil* (naql kafalah)
 5. *Tukar riyal–rupiah*
 6. *Jastip* Saudi → Indonesia
 7. *Website & digital marketing* (digiKSA)
-8. *Paket padel* Madinah
 
 ## Info yang TIDAK boleh disampaikan
 - Kelas Muthowif / e-course muthowif: sedang tidak ditawarkan. Jangan dibahas atau ditawarkan.

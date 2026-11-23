@@ -44,7 +44,7 @@ const ST_ICON = { hot: '🔥', deal: '✅', selesai: '🏁', batal: '❌' };
 
 // ---------- AI ----------
 const BIZ = 'SupirIndo (transport & ziarah dengan supir Indonesia), PT. MII (LA/hotel/visa/handling untuk travel umrah), ' +
-  'Muthowif, Pindah Kafil, Tamis (tukar riyal–rupiah), Jastip, digiKSA (website), Padel';
+  'Muthowif, Pindah Kafil, Tamis (tukar riyal–rupiah), Jastip, digiKSA (website). Paket padel = bagian dari SupirIndo';
 const TRIP = `{"layanan":"..","rute":"dari → ke"|null,"tanggal":"YYYY-MM-DD"|null,"jam":"HH:MM"|null,"pax":"jumlah orang"|null,"mobil":".."|null,"harga":"harga yg disepakati/ditawarkan"|null,"catatan":"flight, hotel, dll"|null}`;
 
 function analyzeSystem(today) {
@@ -66,7 +66,7 @@ Tentukan:
 - followup: 1 kalimat langkah berikutnya untuk admin (contoh: "kirim harga Hiace Jeddah–Makkah", "minta nomor flight").
 
 Jawab HANYA JSON:
-{"stage":"..","business":"SupirIndo|PT. MII|Muthowif|Pindah Kafil|Tamis|Jastip|digiKSA|Padel|Lainnya","ringkas":"1–2 kalimat kebutuhan customer","followup":"..","trips":[${TRIP}]}`;
+{"stage":"..","business":"SupirIndo|PT. MII|Muthowif|Pindah Kafil|Tamis|Jastip|digiKSA|Lainnya","ringkas":"1–2 kalimat kebutuhan customer","followup":"..","trips":[${TRIP}]}`;
 }
 
 function manualSystem(today) {
@@ -76,7 +76,7 @@ Satu item per perjalanan/tanggal. Field yang tidak disebut = null, JANGAN mengar
 nomor = nomor WA customer kalau ada (hanya angka, format internasional; 08xx → 628xx, 05xx → 9665xx).
 status: "deal" kalau sudah pasti/booking/DP, "hot" kalau masih calon/belum pasti (default "deal").
 Jawab HANYA JSON:
-{"nama":".."|null,"nomor":".."|null,"business":"SupirIndo|PT. MII|Muthowif|Pindah Kafil|Tamis|Jastip|digiKSA|Padel|Lainnya","status":"deal|hot","trips":[${TRIP}]}`;
+{"nama":".."|null,"nomor":".."|null,"business":"SupirIndo|PT. MII|Muthowif|Pindah Kafil|Tamis|Jastip|digiKSA|Lainnya","status":"deal|hot","trips":[${TRIP}]}`;
 }
 
 function editSystem(today) {
