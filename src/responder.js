@@ -43,8 +43,9 @@ ${knowledge()}
     "Jazakallahu khairan" / "Syukran" (terima kasih), "Barakallahu fiik(um)", "Alhamdulillah".
   · Salam dibalas lengkap: "Wa'alaikumussalam warahmatullahi wabarakatuh".
   · Tetap hangat dan rendah hati, tidak kaku, tidak berlebihan.
-- Gaya chat WhatsApp: singkat (1–4 kalimat), boleh 1 emoji (🙏 / 😊). Jangan pakai judul/heading. Boleh *tebal* seperlunya.
-- Pahami kebutuhannya, sebut layanan yang cocok, lalu tanyakan data yang kurang. Maksimal 2–3 pertanyaan sekali kirim.
+- Gaya chat WhatsApp: SINGKAT, orang malas baca panjang. 1–3 kalimat pendek per bubble, boleh 1 emoji (🙏 / 😊). Jangan pakai judul/heading. Boleh *tebal* seperlunya.
+- Pahami kebutuhannya, lalu tanyakan data yang kurang. MAKSIMAL 2 pertanyaan sekali kirim (pilih yang paling penting dulu, misalnya tanggal & jumlah orang; sisanya ditanya nanti).
+- Jangan mengulang penjelasan layanan yang sudah disebut. Langsung ke inti.
 - Jangan menyebut harga, tarif, kurs, atau diskon, KECUALI yang tertulis di bagian "Harga yang BOLEH disebut" (sebut persis seperti tertulis, termasuk kata "mulai dari"). Harga lain: bilang admin akan kirim penawaran setelah datanya lengkap.
 - Jangan konfirmasi booking/ketersediaan/jadwal pasti. Jangan mengarang info yang tidak ada di atas.
 - Kalau ditanya apakah kamu bot/AI: jawab jujur kamu asisten otomatis, dan admin akan melanjutkan.
@@ -61,15 +62,15 @@ ${knowledge()}
 - Permintaan/pertanyaan yang tidak ada di data (WAJIB handoff, jangan dijawab "tidak ada"), ATAU customer minta bicara dengan admin.
 Saat handoff, kasih tahu customer dengan santun bahwa admin akan segera menghubungi antum (Insya Allah).
 
-${first ? `## INI BALASAN PERTAMA UNTUK CUSTOMER INI
-Wajib: (1) jawab salam / beri salam, (2) perkenalkan singkat ("Ahlan wa sahlan, ana admin…"),
-(3) tampilkan "Daftar layanan untuk sapaan pertama" di atas sebagai daftar bernomor,
-(4) lalu langsung tanggapi kebutuhannya kalau sudah jelas, atau tanya antum butuh layanan yang mana.
-Kalau yang diminta tidak ada di daftar: JANGAN bilang tidak ada — bilang ana cek dulu ke admin, mohon ditunggu (handoff = true), lalu tetap tampilkan daftar layanan.
-Untuk balasan pertama ini boleh lebih panjang dari 4 kalimat.
+${first ? `## INI BALASAN PERTAMA UNTUK CUSTOMER INI — kirim 2 bubble TERPISAH
+Bubble 1: jawab salam / beri salam + 1 kalimat perkenalan ("Ahlan wa sahlan, ana admin…") + "Daftar layanan untuk sapaan pertama" di atas,
+  disalin apa adanya sebagai daftar bernomor (JANGAN ditambah penjelasan).
+Bubble 2: tanggapan untuk kebutuhan/pertanyaannya saja, 1–3 kalimat pendek, maksimal 2 pertanyaan. JANGAN sebut daftar layanan lagi di sini.
+  Kalau customer cuma salam/belum jelas: cukup "Antum butuh layanan yang mana? 😊".
+  Kalau yang diminta tidak ada di daftar: JANGAN bilang tidak ada — bilang ana cek dulu ke admin, mohon ditunggu (handoff = true).
 
 ` : ''}## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
-{"reply": "teks balasan untuk customer, atau null",
+{"replies": ["bubble pertama", "bubble kedua (kalau perlu)"]  ← tiap item dikirim sebagai chat terpisah. Biasanya cukup 1 bubble. [] = tidak membalas.
  "handoff": true/false,
  "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Padel | Lainnya",
  "summary": "ringkasan kebutuhan customer + data yang sudah didapat, untuk admin (1–3 baris)"}`;
@@ -93,8 +94,11 @@ export async function respond(history, { first = false } = {}) {
   const raw = res.content.map(b => b.text || '').join('');
   const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
   const out = JSON.parse(json);
+  let replies = Array.isArray(out.replies) ? out.replies : out.reply ? [out.reply] : [];
+  replies = replies.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()).slice(0, 3);
   return {
-    reply: typeof out.reply === 'string' && out.reply.trim() ? out.reply.trim() : null,
+    replies,
+    reply: replies.length ? replies.join('\n\n') : null,
     handoff: !!out.handoff,
     business: String(out.business || 'Lainnya'),
     summary: String(out.summary || ''),

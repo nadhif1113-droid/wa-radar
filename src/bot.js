@@ -322,13 +322,15 @@ async function processChat(jid) {
     return toOwner(`⚠️ Bot gagal balas (${e.message.slice(0, 80)}). Tolong balas manual:\n👤 ${who}\n"${lastUser.slice(0, 300)}"\n${chatLinkFor(chat.num)}`);
   }
   if (!r) return;
-  if (r.reply) {
+  if (r.replies.length) {
     try { const k = lastKey.get(jid); if (k) await sock.readMessages([k]); } catch {}
-    try { await sock.sendPresenceUpdate('composing', jid); } catch {}
-    await sleep(Math.min(9000, 2500 + r.reply.length * 35));   // jeda "lagi ngetik" biar natural
-    await sendAsBot(jid, r.reply);
+    for (const [i, bubble] of r.replies.entries()) {       // tiap bubble dikirim terpisah
+      try { await sock.sendPresenceUpdate('composing', jid); } catch {}
+      await sleep(Math.min(i ? 6000 : 9000, (i ? 1500 : 2500) + bubble.length * 25));   // jeda "lagi ngetik" biar natural
+      await sendAsBot(jid, bubble);
+      db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(jid, 'assistant', bubble, answeredTs);
+    }
     try { await sock.sendPresenceUpdate('paused', jid); } catch {}
-    db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(jid, 'assistant', r.reply, answeredTs);
   }
   db.prepare('UPDATE chats SET business=?, summary=?, day_key=?, day_replies=? WHERE jid=?')
     .run(r.business, r.summary, today, used + (r.reply ? 1 : 0), jid);
