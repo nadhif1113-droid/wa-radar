@@ -42,7 +42,7 @@ const PAIR_ONLY = process.argv.includes('--pair');
 // Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
 const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
 const handled = new Set();
-const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|order|orders|jadwal|prospek|rekap|(deal|selesai|batal)\s+#?\d+|ubah\s+#?\d+\s+[\s\S]+|catat\s+[\s\S]+|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|followup(\s+(on|off))?|order|orders|jadwal|prospek|rekap|(deal|selesai|batal)\s+#?\d+|ubah\s+#?\d+\s+[\s\S]+|catat\s+[\s\S]+|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
 function isSelfChat(jid, alt) {
   const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
   return [jid, alt].some(j => j && mine.includes(digits(j)));
@@ -102,6 +102,11 @@ async function handleCommand(jid, raw) {
                       : '⏸️ Auto-reply chat customer DIMATIKAN. Chat masuk tetap gw teruskan ke lu.');
   }
   if (c === 'chat') return toOwner(buildChats());
+  if (c === 'followup') {
+    const on = (rest[0] || '').toLowerCase() !== 'off';
+    meta.set(db, 'followup', on ? 'on' : 'off');
+    return toOwner(on ? `✅ Follow-up otomatis NYALA: customer prospek yang diam ${env.FOLLOWUP_HOURS} jam dikirimi 1x pengingat (jam 08–22).` : '⏸️ Follow-up otomatis DIMATIKAN.');
+  }
   if (c === 'order' || c === 'orders' || c === 'jadwal') return toOwner(buildOrders(db));
   if (c === 'prospek') return toOwner(buildProspects(db));
   if (c === 'rekap') return toOwner(buildRecap(db));
@@ -245,6 +250,35 @@ async function analyze(jid) {
   }
 }
 
+// ---------- follow-up otomatis: customer prospek diam X jam → 1x pengingat singkat ----------
+async function sendFollowups() {
+  if (!env.FOLLOWUP_HOURS || meta.get(db, 'followup') === 'off' || !autoReplyOn() || !inReplyHours()) return;
+  const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: env.TIMEZONE, hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
+  if (h < 8 || h >= 22) return;                              // jangan ganggu malam
+  const now = Date.now();
+  const rows = db.prepare(`SELECT * FROM chats WHERE stage IN ('prospek','hot') AND last_ts > ? AND paused_until < ?
+                           AND (handoff_at IS NULL OR handoff_at < ?)`).all(now - 22 * 36e5, now, now - 12 * 36e5);
+  for (const c of rows) {
+    const last = db.prepare('SELECT role, ts FROM convo WHERE jid=? ORDER BY ts DESC, id DESC LIMIT 1').get(c.jid);
+    const lastUser = db.prepare(`SELECT MAX(ts) t FROM convo WHERE jid=? AND role='user'`).get(c.jid)?.t || 0;
+    if (!last || last.role !== 'assistant' || now - last.ts < env.FOLLOWUP_HOURS * 36e5) continue;   // kita yang terakhir bicara, udah X jam
+    if ((c.nudged_at || 0) > lastUser || busy.has(c.jid)) continue;                                     // maks 1x per obrolan
+    db.prepare('UPDATE chats SET nudged_at=? WHERE jid=?').run(now, c.jid);
+    try {
+      const history = db.prepare(`SELECT role, text, ts FROM convo WHERE jid=? AND ts > ? ORDER BY ts DESC, id DESC LIMIT 24`).all(c.jid, now - 7 * 864e5).reverse();
+      const r = await respond(history, { nudge: true, name: c.name || '' });
+      const text = r?.replies?.[0];
+      if (!text) continue;
+      try { await sock.sendPresenceUpdate('composing', c.jid); } catch {}
+      await sleep(2500 + Math.min(4000, text.length * 25));
+      await sendAsBot(c.jid, text);
+      db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(c.jid, 'assistant', text, Date.now());
+      log('Follow-up terkirim ke', c.name || c.jid);
+      await sleep(5000);
+    } catch (e) { log('Follow-up gagal:', e.message); }
+  }
+}
+
 // ---------- label WhatsApp Business (Prospek / Hot / Deal / Selesai) ----------
 const LABELS = { prospek: ['Prospek', 2], hot: ['Hot Lead', 0], deal: ['Deal', 6], selesai: ['Selesai', 12] };
 async function labelId(stage) {
@@ -316,7 +350,7 @@ async function processChat(jid) {
   const answeredTs = Math.max(0, ...history.filter(h => h.role === 'user').map(h => h.ts)) + 1;
   let r;
   const first = !db.prepare(`SELECT 1 FROM convo WHERE jid=? AND role='assistant' AND ts > ? LIMIT 1`).get(jid, now - 30 * 864e5);
-  try { r = await respond(history, { first }); }
+  try { r = await respond(history, { first, name: chat.name || '' }); }
   catch (e) {
     log('Claude gagal:', e.message);
     return toOwner(`⚠️ Bot gagal balas (${e.message.slice(0, 80)}). Tolong balas manual:\n👤 ${who}\n"${lastUser.slice(0, 300)}"\n${chatLinkFor(chat.num)}`);
@@ -562,6 +596,7 @@ cron.schedule('30 3 * * *', () => { prune(db); pruneOrders(db); log('Database di
 const at = t => { const [h, m] = t.split(':').map(Number); return `${m} ${h} * * *`; };
 cron.schedule(at(env.ORDER_TIME), () => { toOwner(buildAgenda(db)); log('Jadwal order pagi terkirim'); }, { timezone: env.TIMEZONE });
 cron.schedule(at(env.RECAP_TIME), () => { toOwner(buildRecap(db)); log('Rekap malam terkirim'); }, { timezone: env.TIMEZONE });
+setInterval(() => sendFollowups().catch(e => log('Follow-up error:', e.message)), Number(process.env.FOLLOWUP_CHECK_MS) || 10 * 60_000);
 setInterval(async () => {                                   // 3 jam sebelum jemput → ingatkan
   try { for (const o of dueSoon(db)) await toOwner(`⏰ *${o.jam} HARI INI*\n${orderLine(o)}\n☑️ Supir udah jalan? Customer udah dikabari?`); }
   catch (e) { log('Pengingat order error:', e.message); }

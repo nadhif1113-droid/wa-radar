@@ -154,6 +154,7 @@ export const MENU = `🤖 *RADAR GROUP — MENU*
 *harga visa* — detail + 5 penjual termurah & kontaknya
 *chat* — daftar customer yang chat ke nomor ini (per bisnis)
 *autoreply off* / *autoreply on* — matikan/nyalakan balasan otomatis
+*followup off* / *followup on* — follow-up otomatis ke customer yang diam
 *rapikan* — semua group di-mute, diarsipkan, ditandai dibaca (otomatis juga utk group baru)
 *bersihkan* — hapus isi chat semua group (hemat storage), diulang tiap Jumat
 *status* — cek bot hidup

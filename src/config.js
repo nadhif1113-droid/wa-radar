@@ -21,6 +21,7 @@ export const env = {
   // Order & prospek
   ORDER_TIME: process.env.ORDER_TIME || '07:30',               // jadwal order pagi (hari ini, H-1, H-2)
   RECAP_TIME: process.env.RECAP_TIME || '21:00',               // rekap malam
+  FOLLOWUP_HOURS: Number(process.env.FOLLOWUP_HOURS || 3),  // customer diam X jam → bot kirim 1x follow-up (0 = mati)
   WA_LABELS: (process.env.WA_LABELS || 'true') === 'true',     // tandai chat pakai label WA Business
 };
 

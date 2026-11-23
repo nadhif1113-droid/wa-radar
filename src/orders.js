@@ -34,7 +34,7 @@ export function initOrdersDb(db) {
     CREATE INDEX IF NOT EXISTS orders_tgl ON orders(tanggal, status);
     CREATE INDEX IF NOT EXISTS orders_jid ON orders(jid);
   `);
-  for (const col of ['stage TEXT', 'ringkas TEXT', 'followup TEXT', 'label TEXT', 'analyzed_at INTEGER', 'stage_at INTEGER']) {
+  for (const col of ['stage TEXT', 'ringkas TEXT', 'followup TEXT', 'label TEXT', 'analyzed_at INTEGER', 'stage_at INTEGER', 'nudged_at INTEGER DEFAULT 0']) {
     try { db.exec(`ALTER TABLE chats ADD COLUMN ${col}`); } catch {}
   }
 }
