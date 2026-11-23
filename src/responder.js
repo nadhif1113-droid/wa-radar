@@ -21,6 +21,20 @@ export function initResponderDb(db) {
   `);
 }
 
+// Library pengetahuan: semua file .md di folder pengetahuan/ (urut nama file). Edit/ tambah file sendiri boleh.
+let libCache = { at: 0, text: '' };
+function library() {
+  if (Date.now() - libCache.at < 60_000) return libCache.text;           // baca ulang tiap 1 menit (biar edit langsung kepakai)
+  let text = '';
+  try {
+    const dir = './pengetahuan';
+    if (fs.existsSync(dir)) text = fs.readdirSync(dir).filter(f => f.endsWith('.md')).sort()
+      .map(f => fs.readFileSync(`${dir}/${f}`, 'utf8').trim()).join('\n\n');
+  } catch {}
+  libCache = { at: Date.now(), text };
+  return text;
+}
+
 function knowledge() {
   for (const f of ['./bisnis.md', './bisnis.example.md']) {
     try { if (fs.existsSync(f)) return fs.readFileSync(f, 'utf8'); } catch {}
@@ -28,11 +42,13 @@ function knowledge() {
   return '';
 }
 
+// Bagian statis (data bisnis + library + aturan) di-cache 1 jam → hemat biaya. Bagian dinamis (tanggal, nama, mode) di belakang.
 function systemPrompt(first, nudge, name) {
-  return `Kamu admin WhatsApp yang membalas chat customer untuk usaha di bawah ini.
-Hari ini: ${todayLong()} (waktu Saudi). Pakai ini untuk memahami "besok", "lusa", "Jumat ini", dll.
-${name ? `Nama WhatsApp customer: "${name}" (sapa dengan nama/panggilan sopan kalau terlihat seperti nama orang, mis. "Pak Ahmad"; kalau bukan nama, abaikan).\n` : ''}
+  const staticPart = `Kamu admin WhatsApp yang membalas chat customer untuk usaha di bawah ini.
+
 ${knowledge()}
+
+${library()}
 
 ## CARA MEMBALAS
 - Bahasa: ikuti bahasa customer (default Bahasa Indonesia; kalau customer pakai Arab/Inggris, balas dengan bahasa itu).
@@ -97,6 +113,14 @@ ${knowledge()}
 - Permintaan/pertanyaan yang tidak ada di data (WAJIB handoff, jangan dijawab "tidak ada"), ATAU customer minta bicara dengan admin.
 Saat handoff, kasih tahu customer dengan santun bahwa admin akan segera menghubungi antum (Insya Allah).
 
+## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
+{"replies": ["bubble pertama", "bubble kedua (kalau perlu)"]  ← tiap item dikirim sebagai chat terpisah. Biasanya cukup 1 bubble. [] = tidak membalas.
+ "handoff": true/false,
+ "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Lainnya",
+ "summary": "ringkasan kebutuhan customer + data yang sudah didapat, untuk admin (1–3 baris)"}`;
+  const dynamicPart = `## KONTEKS CHAT INI
+Hari ini: ${todayLong()} (waktu Saudi). Pakai ini untuk memahami "besok", "lusa", "Jumat ini", dll.
+${name ? `Nama WhatsApp customer: "${name}" (sapa dengan nama/panggilan sopan kalau terlihat seperti nama orang, mis. "Pak Ahmad"; kalau bukan nama, abaikan).\n` : ''}
 ${first ? `## INI BALASAN PERTAMA UNTUK CUSTOMER INI — kirim 2 bubble TERPISAH
 Bubble 1: jawab salam / beri salam + 1 kalimat perkenalan ("Ahlan wa sahlan, ana admin…") + "Daftar layanan untuk sapaan pertama" di atas,
   disalin apa adanya sebagai daftar bernomor (JANGAN ditambah penjelasan).
@@ -108,11 +132,11 @@ Bubble 2: tanggapan untuk kebutuhan/pertanyaannya saja, 1–3 kalimat pendek, ma
 Customer belum membalas sejak balasan terakhir kita. Kirim 1 bubble follow-up yang SANGAT singkat (1–2 kalimat), ramah, tidak memaksa:
 ingatkan pertanyaan terakhir atau tawarkan bantuan pilihkan mobil/jadwal. Jangan ulang salam panjang, jangan kirim daftar layanan. handoff = false.
 
-` : ''}## FORMAT JAWABAN (WAJIB, hanya JSON, tanpa teks lain)
-{"replies": ["bubble pertama", "bubble kedua (kalau perlu)"]  ← tiap item dikirim sebagai chat terpisah. Biasanya cukup 1 bubble. [] = tidak membalas.
- "handoff": true/false,
- "business": "SupirIndo | PT. MII | Muthowif | Pindah Kafil | Tamis | Jastip | digiKSA | Lainnya",
- "summary": "ringkasan kebutuhan customer + data yang sudah didapat, untuk admin (1–3 baris)"}`;
+` : ''}`;
+  return [
+    { type: 'text', text: staticPart, cache_control: { type: 'ephemeral', ttl: '1h' } },
+    { type: 'text', text: dynamicPart },
+  ];
 }
 
 /** history: [{role:'user'|'assistant', text}] urut lama → baru */
@@ -128,9 +152,13 @@ export async function respond(history, { first = false, nudge = false, name = ''
   if (nudge && msgs.length) msgs.push({ role: 'user', content: '[CATATAN SISTEM, bukan dari customer: customer belum membalas. Tulis 1 follow-up singkat.]' });
   if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return null;
 
-  const res = await client.messages.create({
-    model: env.CHAT_MODEL, max_tokens: 1000, system: systemPrompt(first, nudge, name), messages: msgs,
-  });
+  const system = systemPrompt(first, nudge, name);
+  let res;
+  try { res = await client.messages.create({ model: env.CHAT_MODEL, max_tokens: 1000, system, messages: msgs }); }
+  catch (e) {
+    if (e?.status !== 400) throw e;                                       // cache 1 jam ditolak? ulang tanpa cache
+    res = await client.messages.create({ model: env.CHAT_MODEL, max_tokens: 1000, system: system.map(b => ({ type: 'text', text: b.text })), messages: msgs });
+  }
   const raw = res.content.map(b => b.text || '').join('');
   const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
   const out = JSON.parse(json);

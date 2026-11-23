@@ -102,6 +102,13 @@ Jam balas diatur lewat `REPLY_HOURS` di `.env` (default 24 jam).
 - Order yang closing lewat nomor utama: ketik ke bot *catat …* (bahasa bebas), nanti ikut diingatkan.
 - Perintah: *order* · *prospek* · *rekap* · *catat …* · *ubah 12 …* · *deal 12* · *selesai 12* · *batal 12*
 
+## 📚 Library pengetahuan bot
+Folder `pengetahuan/` berisi bahan jawaban bot: aturan umrah terbaru (visa, Nusuk, Raudhah, tanggal musim 1448 H), manasik ringkas & miqat,
+haji, transportasi & rute (bandara, kereta Haramain, jarak), ziarah & wisata, tips jamaah, bisnis B2B travel umrah (LA, Masar Nusuk, handling),
+FAQ + cara menjawab keberatan + teknik closing, dan regulasi Indonesia (UU 14/2025, umrah mandiri).
+Mau nambah/ubah? Edit atau tambah file `.md` di folder itu — bot langsung pakai dalam 1 menit, gak perlu restart.
+Aturan pemerintah bisa berubah: cek ulang isi file `01-umrah-aturan-terkini.md` tiap awal musim.
+
 ## AI Claude (opsional, disarankan)
 Tanpa AI, bot tetap jalan pakai saringan kata kunci. Kelemahannya, kadang iklan atau ajakan ikut ketangkep sebagai pertanyaan.
 Dengan AI, tiap calon lead dicek ulang sama Claude: dipastikan beneran pertanyaan, diringkas, dan ditandai ⚡ kalau mendesak.
