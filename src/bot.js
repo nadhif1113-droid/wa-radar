@@ -17,6 +17,7 @@ import { buildAlert, buildDigest, buildTrend, buildGroups, buildLeads, buildSear
 import { CATEGORIES } from './config.js';
 import { respond, replyAvailable, initResponderDb } from './responder.js';
 import { initPriceDb, buildPriceReport, buildPriceDetail } from './pricereport.js';
+import { initLearnDb, learnStyle, readStyle, buildWeekly } from './learn.js';
 import { initOrdersDb, analyzeChat, syncChatOrders, addManualOrder, editOrder, setOrderStatus, ordersAI,
          buildOrders, buildProspects, buildAgenda, buildRecap, buildNewDeal, dueSoon, pruneOrders, orderLine, STAGE_ICON } from './orders.js';
 
@@ -25,6 +26,7 @@ if (!env.OWNER_NUMBER) { console.error('❌ Isi OWNER_NUMBER di file .env dulu (
 
 const db = openDb();
 initResponderDb(db);
+initLearnDb(db);
 initPriceDb(db);
 initOrdersDb(db);
 for (const col of ['last_key TEXT', 'last_ts INTEGER', 'tidied INTEGER DEFAULT 0', 'cleared_at INTEGER DEFAULT 0']) {
@@ -42,7 +44,7 @@ const PAIR_ONLY = process.argv.includes('--pair');
 // Nomor bot = nomor utama lu (1 nomor)? Perintah diketik di chat "ke diri sendiri".
 const SELF = !!env.BOT_NUMBER && env.BOT_NUMBER === env.OWNER_NUMBER;
 const handled = new Set();
-const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|followup(\s+(on|off))?|order|orders|jadwal|prospek|rekap|(deal|selesai|batal)\s+#?\d+|ubah\s+#?\d+\s+[\s\S]+|catat\s+[\s\S]+|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
+const isCommand = t => /^[!/.]?\s*(menu|help|bantuan|status|digest|leads?|trend|tren|grup|groups?|chat|harga(\s+.+)?|autoreply\s+(on|off)|rapikan(\s+off)?|bersihkan(\s+off)?|followup(\s+(on|off))?|belajar|gaya|mingguan|order|orders|jadwal|prospek|rekap|(deal|selesai|batal)\s+#?\d+|ubah\s+#?\d+\s+[\s\S]+|catat\s+[\s\S]+|mode\s+\d+\s+\w+|cari\s+.+)\s*$/i.test((t || '').trim());
 function isSelfChat(jid, alt) {
   const mine = [env.BOT_NUMBER, digits(sock?.user?.id), digits(sock?.user?.lid)].filter(Boolean);
   return [jid, alt].some(j => j && mine.includes(digits(j)));
@@ -109,6 +111,12 @@ async function handleCommand(jid, raw) {
   }
   if (c === 'order' || c === 'orders' || c === 'jadwal') return toOwner(buildOrders(db));
   if (c === 'prospek') return toOwner(buildProspects(db));
+  if (c === 'mingguan') return toOwner(buildWeekly(db));
+  if (c === 'gaya') {
+    const g = readStyle();
+    return toOwner(g ? `🎓 *GAYA ADMIN YANG DIPAKAI BOT*\n\n${g.slice(0, 3500)}` : 'Belum ada. Bot belajar tiap Jumat 03:00, atau ketik *belajar* sekarang.');
+  }
+  if (c === 'belajar') { await toOwner('🎓 Bot mulai mempelajari balasan admin 7 hari terakhir, tunggu ± 1 menit…'); return weeklyLearn(true); }
   if (c === 'rekap') return toOwner(buildRecap(db));
   if (c === 'catat') {
     const body = t.slice(cmd.length).trim();
@@ -428,6 +436,19 @@ function clearAllGroups() {
   return rows.length;
 }
 
+// ---------- belajar mingguan: gaya admin + rekap ----------
+async function weeklyLearn(manual = false) {
+  try {
+    if (!manual) await toOwner(buildWeekly(db));
+    const r = await learnStyle(db);
+    if (r.error) return toOwner(`⚠️ Belajar gaya admin gagal: ${r.error}`);
+    if (!r.learned) return toOwner('🎓 Minggu ini belum ada balasan admin (manusia) di nomor bisnis, jadi belum ada yang dipelajari. Gaya lama tetap dipakai.');
+    await toOwner(`🎓 *Bot selesai belajar* dari ${r.chats} chat yang dibalas admin minggu ini. Gaya bahasa & cara closing admin sekarang dipakai bot.\n` +
+      `Lihat hasilnya: *gaya*` + (r.info && r.info !== '-' ? `\n\n📌 *Info baru dari obrolan admin (cek & masukkan ke data bisnis kalau benar):*\n${r.info.slice(0, 1500)}` : ''));
+    log(`Belajar gaya admin: ${r.chats} chat`);
+  } catch (e) { log('Belajar error:', e.message); toOwner(`⚠️ Belajar gaya admin error: ${e.message.slice(0, 100)}`); }
+}
+
 // ---------- alert real-time ----------
 async function flushQueue() {
   try {
@@ -544,7 +565,7 @@ async function start() {
       if (msg.key.fromMe && !isJidGroup(jid) && !botSent.has(msg.key.id) && !isSelfChat(jid, msg.key.remoteJidAlt)) {
         db.prepare(`INSERT INTO chats(jid,paused_until,last_ts) VALUES(?,?,?)
                     ON CONFLICT(jid) DO UPDATE SET paused_until=excluded.paused_until`).run(jid, Date.now() + 24 * 36e5, Date.now());
-        db.prepare('INSERT INTO convo(jid,role,text,ts) VALUES(?,?,?,?)').run(jid, 'assistant', ex.text || '[admin]', Date.now());
+        db.prepare('INSERT INTO convo(jid,role,text,ts,src) VALUES(?,?,?,?,?)').run(jid, 'assistant', ex.text || '[admin]', Date.now(), 'admin');
         scheduleAnalyze(jid);
         continue;
       }
@@ -594,6 +615,7 @@ for (const t of env.DIGEST_TIMES) {
 }
 cron.schedule('30 3 * * *', () => { prune(db); pruneOrders(db); log('Database dibersihkan'); }, { timezone: env.TIMEZONE });
 const at = t => { const [h, m] = t.split(':').map(Number); return `${m} ${h} * * *`; };
+cron.schedule('0 3 * * 5', () => weeklyLearn(), { timezone: env.TIMEZONE });   // Jumat 03:00, sebelum bersihkan 04:00
 cron.schedule(at(env.ORDER_TIME), () => { toOwner(buildAgenda(db)); log('Jadwal order pagi terkirim'); }, { timezone: env.TIMEZONE });
 cron.schedule(at(env.RECAP_TIME), () => { toOwner(buildRecap(db)); log('Rekap malam terkirim'); }, { timezone: env.TIMEZONE });
 setInterval(() => sendFollowups().catch(e => log('Follow-up error:', e.message)), Number(process.env.FOLLOWUP_CHECK_MS) || 10 * 60_000);

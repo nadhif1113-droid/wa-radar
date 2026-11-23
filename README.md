@@ -109,6 +109,14 @@ FAQ + cara menjawab keberatan + teknik closing, dan regulasi Indonesia (UU 14/20
 Mau nambah/ubah? Edit atau tambah file `.md` di folder itu — bot langsung pakai dalam 1 menit, gak perlu restart.
 Aturan pemerintah bisa berubah: cek ulang isi file `01-umrah-aturan-terkini.md` tiap awal musim.
 
+## 🎓 Belajar gaya admin tiap minggu
+- Tiap **Jumat 03:00** (sebelum bersihkan mingguan 04:00) bot membaca balasan yang diketik ADMIN (manusia) di HP nomor bisnis 7 hari terakhir,
+  lalu memperbarui `pengetahuan/90-gaya-admin.md`: gaya bahasa, contoh kalimat, cara closing & menangani keberatan. Bot langsung meniru.
+- Di saat yang sama lu dapat **rekap mingguan** + daftar "info baru" yang admin sebut (harga/layanan baru) untuk dicek.
+  Harga yang dipelajari TIDAK otomatis dipakai bot — masukkan sendiri ke data bisnis kalau benar.
+- Nomor HP & nama customer disamarkan sebelum dipelajari. Versi lama disimpan di `data/gaya-admin/`.
+- Perintah: *belajar* (sekarang) · *gaya* (lihat hasil) · *mingguan* (rekap 7 hari)
+
 ## AI Claude (opsional, disarankan)
 Tanpa AI, bot tetap jalan pakai saringan kata kunci. Kelemahannya, kadang iklan atau ajakan ikut ketangkep sebagai pertanyaan.
 Dengan AI, tiap calon lead dicek ulang sama Claude: dipastikan beneran pertanyaan, diringkas, dan ditandai ⚡ kalau mendesak.

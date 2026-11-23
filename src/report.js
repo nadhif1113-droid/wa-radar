@@ -162,7 +162,8 @@ export const MENU = `🤖 *RADAR GROUP — MENU*
 📅 *ORDER & PROSPEK*
 *order* — jadwal order 14 hari ke depan
 *prospek* — customer prospek & hot yang harus dikejar
-*rekap* — rekap hari ini
+*rekap* — rekap hari ini · *mingguan* — rekap 7 hari
+*gaya* — gaya admin yang ditiru bot · *belajar* — suruh bot belajar sekarang
 *catat …* — catat order dari nomor utama, bahasa bebas. Contoh:
    _catat Pak Budi 0812xxx jemput bandara Madinah ke hotel 25 Nov jam 14.00, Hiace 8 orang, 550_
 *ubah 12 …* — ubah order #12, contoh: _ubah 12 jadi tgl 28 jam 9 pagi_
